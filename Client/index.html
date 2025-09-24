@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>T-Town Trading Post</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./Resources/Styles/main.css" />
+</head>
+<body onLoad="handleOnLoad()">
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom sticky-top">
+    <div class="container">
+      <div class="d-flex align-items-center w-100">
+        <!-- Search Button (Left) -->
+        <button class="btn btn-outline-secondary me-3" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-controls="filtersCollapse" aria-expanded="false" aria-label="Toggle filters">
+          <i class="bi bi-funnel me-1"></i><span class="btn-text">Search Listings</span>
+        </button>
+        
+        <!-- Centered Title -->
+        <div class="flex-grow-1 text-center">
+          <a class="navbar-brand fw-bold" href="#" style="font-family: 'Georgia', serif; font-size: 1.8rem; color: #9B1C31 !important;">
+            <i class="bi bi-house-door me-2"></i>T-Town Trading Post
+          </a>
+        </div>
+        
+        <!-- Post Button -->
+        <button id="postBtn" class="btn btn-primary me-3" type="button" data-bs-toggle="modal" data-bs-target="#postOffcanvas" aria-controls="postOffcanvas">
+          <i class="bi bi-plus-lg me-1"></i><span class="btn-text">Post listing</span>
+        </button>
+        
+        <!-- Admin Menu (Right) -->
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="adminDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-gear me-1"></i><span class="btn-text">Admin</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" id="adminLoginBtn">
+              <i class="bi bi-person-lock me-2"></i>Admin Login
+            </a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Search Form (Collapsible) -->
+      <div class="collapse w-100 mt-3" id="navMain">
+        <form id="searchForm" class="w-100" role="search">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="search" id="searchInput" class="form-control" placeholder="Search listings..." aria-label="Search listings" />
+          </div>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <!-- Filters -->
+    <div class="collapse" id="filtersCollapse">
+      <form id="filtersForm" class="row gy-3 gx-3 align-items-end">
+        <div class="col-6 col-md-2">
+          <label for="categorySelect" class="form-label">Category</label>
+          <select id="categorySelect" class="form-select">
+            <option value="">All</option>
+            <option>Couch</option>
+            <option>Desk</option>
+            <option>Chair</option>
+            <option>Bed</option>
+            <option>Storage</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="universitySelect" class="form-label">University</label>
+          <div class="dropdown">
+            <button class="form-select dropdown-toggle" type="button" id="universityDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <span id="universityText">All</span>
+            </button>
+            <ul class="dropdown-menu" id="universityDropdownMenu" style="max-height: 200px; overflow-y: auto;">
+              <li><a class="dropdown-item" href="#" data-value="">All</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="conditionSelect" class="form-label">Condition</label>
+          <select id="conditionSelect" class="form-select">
+            <option value="">Any</option>
+            <option>Like New</option>
+            <option>Good</option>
+            <option>Fair</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="priceMin" class="form-label">Min $</label>
+          <input type="number" inputmode="decimal" id="priceMin" class="form-control" placeholder="0" min="0" />
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="priceMax" class="form-label">Max $</label>
+          <input type="number" inputmode="decimal" id="priceMax" class="form-control" placeholder="500" min="0" />
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="sortSelect" class="form-label">Sort</label>
+          <select id="sortSelect" class="form-select">
+            <option value="newest">Newest</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2 d-grid d-md-block">
+          <button type="button" id="resetFiltersBtn" class="btn btn-outline-secondary w-100">Reset</button>
+        </div>
+      </form>
+      </div>
+
+      <!-- Results meta -->
+      <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+        <div id="resultsCount" class="text-secondary small">0 results</div>
+      </div>
+
+      <!-- Listings grid -->
+      <div id="listingsGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3"></div>
+    </div>
+
+    <!-- Post listing modal -->
+    <div class="modal fade" id="postOffcanvas" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="postOffcanvasLabel">
+              <i class="bi bi-plus-lg me-2"></i>Post a New Listing
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="postForm" novalidate class="needs-validation">
+              <div class="row">
+                <div class="col-lg-8">
+                  <div class="mb-4">
+                    <label for="titleInput" class="form-label">Listing Title</label>
+                    <input type="text" id="titleInput" class="form-control form-control-lg" required maxlength="80" placeholder="e.g., IKEA desk in great condition" />
+                    <div class="invalid-feedback">Title is required.</div>
+                  </div>
+                  
+                  <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                      <label for="priceInput" class="form-label">Price ($)</label>
+                      <input type="number" id="priceInput" class="form-control" min="0" step="0.01" required placeholder="0.00" />
+                      <div class="invalid-feedback">Enter a valid price.</div>
+                    </div>
+                    <div class="col-md-4">
+                      <label for="categoryInput" class="form-label">Category</label>
+                      <select id="categoryInput" class="form-select" required>
+                        <option value="" disabled selected>Choose...</option>
+                        <option>Couch</option>
+                        <option>Desk</option>
+                        <option>Chair</option>
+                        <option>Bed</option>
+                        <option>Storage</option>
+                        <option>Other</option>
+                      </select>
+                      <div class="invalid-feedback">Select a category.</div>
+                    </div>
+                    <div class="col-md-4">
+                      <label for="conditionInput" class="form-label">Condition</label>
+                      <select id="conditionInput" class="form-select" required>
+                        <option value="" disabled selected>Choose...</option>
+                        <option>Like New</option>
+                        <option>Good</option>
+                        <option>Fair</option>
+                      </select>
+                      <div class="invalid-feedback">Select condition.</div>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label for="descriptionInput" class="form-label">Description</label>
+                    <textarea id="descriptionInput" class="form-control" rows="4" maxlength="400" placeholder="Describe your item, pickup location, any special notes..." required></textarea>
+                    <div class="invalid-feedback">Description is required.</div>
+                    <div class="form-text">Tell potential buyers about your item's condition, location, and any extras included.</div>
+                  </div>
+
+                  <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                      <label for="sellerNameInput" class="form-label">Your Name</label>
+                      <input type="text" id="sellerNameInput" class="form-control" required maxlength="80" placeholder="John Smith" />
+                      <div class="invalid-feedback">Your name is required.</div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="sellerUniversityInput" class="form-label">University</label>
+                      <select id="sellerUniversityInput" class="form-select" required></select>
+                      <div class="invalid-feedback">Select your university.</div>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label for="contactInput" class="form-label">Contact Email</label>
+                    <input type="email" id="contactInput" class="form-control" placeholder="you@ua.edu" required maxlength="120" />
+                    <div class="invalid-feedback">Provide a valid email.</div>
+                    <div class="form-text">This will be shown to interested buyers.</div>
+                  </div>
+                </div>
+
+                <div class="col-lg-4">
+                  <div class="card h-100">
+                    <div class="card-header">
+                      <h6 class="mb-0"><i class="bi bi-image me-2"></i>Photos</h6>
+                    </div>
+                    <div class="card-body">
+                      <div class="mb-3">
+                        <label for="imageInput" class="form-label">Item Photo</label>
+                        <input class="form-control" type="file" id="imageInput" accept="image/*" />
+                        <div class="mt-2">
+                          <img id="imagePreview" alt="Preview" class="img-fluid rounded d-none" style="max-height: 150px; width: 100%; object-fit: cover;" />
+                        </div>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label for="sellerAvatarInput" class="form-label">Your Photo</label>
+                        <input class="form-control" type="file" id="sellerAvatarInput" accept="image/*" required />
+                        <div class="invalid-feedback">Upload a photo of yourself.</div>
+                        <div class="mt-2">
+                          <img id="sellerAvatarPreview" class="avatar avatar-md d-none" alt="Your photo preview" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelPostBtn" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" form="postForm" class="btn btn-primary">
+              <i class="bi bi-cloud-upload me-1"></i>Publish Listing
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="detailTitle">Listing</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <img id="detailImage" class="img-fluid rounded mb-3" alt="Item image" />
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge text-bg-primary" id="detailCategory"></span>
+              <span class="badge text-bg-success" id="detailCondition"></span>
+            </div>
+            <div class="h4" id="detailPrice"></div>
+            <p id="detailDescription" class="mt-2 mb-1"></p>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <img id="detailSellerAvatar" class="avatar avatar-md" alt="Seller avatar" />
+              <div>
+                <div class="fw-semibold" id="detailSellerName"></div>
+                <div class="text-secondary small" id="detailSellerMeta"></div>
+              </div>
+            </div>
+            <div class="text-secondary"><i class="bi bi-person-lines-fill me-1"></i><span id="detailContact"></span></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="modal fade" id="adminLoginModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-person-lock me-2"></i>Admin Login
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="adminLoginForm">
+              <div class="mb-3">
+                <label for="adminUsername" class="form-label">Username</label>
+                <input type="text" class="form-control" id="adminUsername" required>
+              </div>
+              <div class="mb-3">
+                <label for="adminPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="adminPassword" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="adminLoginSubmit">
+              <i class="bi bi-box-arrow-in-right me-1"></i>Login
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Listing Modal -->
+    <div class="modal fade" id="editListingModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-pencil-square me-2"></i>Edit Listing
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editListingForm">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editTitle" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="editTitle" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editPrice" class="form-label">Price ($)</label>
+                    <input type="number" class="form-control" id="editPrice" min="0" step="0.01" required>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editCategory" class="form-label">Category</label>
+                    <select class="form-select" id="editCategory" required>
+                      <option value="">Choose...</option>
+                      <option value="Couch">Couch</option>
+                      <option value="Desk">Desk</option>
+                      <option value="Chair">Chair</option>
+                      <option value="Bed">Bed</option>
+                      <option value="Storage">Storage</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editCondition" class="form-label">Condition</label>
+                    <select class="form-select" id="editCondition" required>
+                      <option value="">Choose...</option>
+                      <option value="Like New">Like New</option>
+                      <option value="Good">Good</option>
+                      <option value="Fair">Fair</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editSellerName" class="form-label">Seller Name</label>
+                    <input type="text" class="form-control" id="editSellerName" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editContact" class="form-label">Contact Email</label>
+                    <input type="email" class="form-control" id="editContact" required>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="editDescription" class="form-label">Description</label>
+                <textarea class="form-control" id="editDescription" rows="3" required></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="saveEditBtn">
+              <i class="bi bi-check-lg me-1"></i>Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Page (Hidden by default) -->
+    <div id="adminPage" class="d-none">
+      <div class="container py-4">
+        <div class="row">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h2 class="text-white">
+                <i class="bi bi-shield-check me-2"></i>Admin Dashboard
+              </h2>
+              <button class="btn btn-outline-secondary" id="logoutBtn">
+                <i class="bi bi-box-arrow-right me-1"></i>Logout
+              </button>
+            </div>
+            
+            <div class="row mb-4">
+              <div class="col-md-3">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h5 class="card-title alabama-crimson" id="totalListings">0</h5>
+                    <p class="card-text">Total Listings</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h5 class="card-title alabama-crimson" id="activeListings">0</h5>
+                    <p class="card-text">Active Listings</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h5 class="card-title alabama-crimson" id="totalUsers">0</h5>
+                    <p class="card-text">Total Users</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h5 class="card-title alabama-crimson" id="totalRevenue">$0</h5>
+                    <p class="card-text">Total Revenue</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="bi bi-list-ul me-2"></i>Manage Listings
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Price</th>
+                        <th>Category</th>
+                        <th>Seller</th>
+                        <th>Contact</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="adminListingsTable">
+                      <!-- Admin listings will be populated here -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toasts -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+  <!-- Bootstrap 5 JS (bundle includes Popper) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"
+  ></script>
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+  <!-- Custom JS -->
+  <script src="./Resources/Scripts/main.js"></script>
+</body>
+</html>

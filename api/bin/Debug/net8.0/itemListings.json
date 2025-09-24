@@ -1,0 +1,98 @@
+[
+    {
+        "id": 1,
+        "title": "IKEA Linnmon Desk",
+        "price": "45.00",
+        "category": "Desk",
+        "condition": "Good",
+        "sellerContact": "alex@ua.edu",
+        "description": "Sturdy desk, minor scratches. Pickup near Tutwiler Hall.",
+        "itemPhoto": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=600&h=400&fit=crop&crop=center",
+        "sellerPhoto": "https://i.pravatar.cc/80?img=12",
+        "sellerUniversity": "University of Alabama"
+    },
+    {
+        "id": 2,
+        "title": "Comfy Reading Chair",
+        "price": "35.00",
+        "category": "Chair",
+        "condition": "Fair",
+        "sellerContact": "morgan@ua.edu",
+        "description": "Well-loved chair, still comfy. Free pillow included.",
+        "itemPhoto": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=400&fit=crop&crop=center",
+        "sellerPhoto": "https://i.pravatar.cc/80?img=32",
+        "sellerUniversity": "University of Alabama"
+    },
+    {
+        "id": 3,
+        "title": "Storage Cubes (Set of 6)",
+        "price": "20.00",
+        "category": "Storage",
+        "condition": "Like New",
+        "sellerContact": "casey@ua.edu",
+        "description": "Great for dorm closet. Hardly used.",
+        "itemPhoto": "../images/storagecubes.jpg",
+        "sellerPhoto": "https://i.pravatar.cc/80?img=47",
+        "sellerUniversity": "University of Alabama"
+    },
+    {
+        "id": 4,
+        "title": "Twin XL Mattress",
+        "price": "80.00",
+        "category": "Bed",
+        "condition": "Good",
+        "sellerContact": "jake@ua.edu",
+        "description": "Memory foam mattress, perfect for dorm life. Comes with mattress protector.",
+        "itemPhoto": "../images/twinxl.jpg",
+        "sellerPhoto": "https://i.pravatar.cc/80?img=15",
+        "sellerUniversity": "University of Alabama"
+    },
+    {
+        "id": 5,
+        "title": "Mini Fridge",
+        "price": "120.00",
+        "category": "Other",
+        "condition": "Like New",
+        "sellerContact": "sarah@ua.edu",
+        "description": "4.3 cu ft mini fridge with freezer. Perfect for dorm room.",
+        "itemPhoto": "https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=600&h=400&fit=crop&crop=center",
+        "sellerPhoto": "https://i.pravatar.cc/80?img=23",
+        "sellerUniversity": "University of Alabama"
+    },
+    {
+        "id": 6,
+        "title": "Study Lamp",
+        "price": "25.00",
+        "category": "Other",
+        "condition": "Good",
+        "sellerContact": "tyler@ua.edu",
+        "description": "LED desk lamp with adjustable brightness. Great for late night studying.",
+        "itemPhoto": "../images/studylamp.jpg",
+        "sellerPhoto": "https://i.pravatar.cc/80?img=8",
+        "sellerUniversity": "University of Alabama"
+    },
+    {
+        "id": 7,
+        "title": "Dorm Rug (5x7)",
+        "price": "40.00",
+        "category": "Other",
+        "condition": "Fair",
+        "sellerContact": "emma@ua.edu",
+        "description": "Soft area rug, adds warmth to dorm room. Easy to clean.",
+        "itemPhoto": "../images/dormrug.jpg",
+        "sellerPhoto": "https://i.pravatar.cc/80?img=35",
+        "sellerUniversity": "University of Alabama"
+    },
+    {
+        "id": 8,
+        "title": "Bookshelf (3-tier)",
+        "price": "30.00",
+        "category": "Storage",
+        "condition": "Good",
+        "sellerContact": "marcus@ua.edu",
+        "description": "White bookshelf, perfect for textbooks and decorations.",
+        "itemPhoto": "../images/bookshelf.jpg",
+        "sellerPhoto": "https://i.pravatar.cc/80?img=19",
+        "sellerUniversity": "University of Alabama"
+    }
+]
