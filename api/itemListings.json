@@ -31,7 +31,7 @@
         "condition": "Like New",
         "sellerContact": "casey@ua.edu",
         "description": "Great for dorm closet. Hardly used.",
-        "itemPhoto": "../images/storagecubes.jpg",
+        "itemPhoto": "images/storagecubes.jpg",
         "sellerPhoto": "https://i.pravatar.cc/80?img=47",
         "sellerUniversity": "University of Alabama"
     },
@@ -43,7 +43,7 @@
         "condition": "Good",
         "sellerContact": "jake@ua.edu",
         "description": "Memory foam mattress, perfect for dorm life. Comes with mattress protector.",
-        "itemPhoto": "../images/twinxl.jpg",
+        "itemPhoto": "images/twinxl.jpg",
         "sellerPhoto": "https://i.pravatar.cc/80?img=15",
         "sellerUniversity": "University of Alabama"
     },
@@ -67,7 +67,7 @@
         "condition": "Good",
         "sellerContact": "tyler@ua.edu",
         "description": "LED desk lamp with adjustable brightness. Great for late night studying.",
-        "itemPhoto": "../images/studylamp.jpg",
+        "itemPhoto": "images/studylamp.jpg",
         "sellerPhoto": "https://i.pravatar.cc/80?img=8",
         "sellerUniversity": "University of Alabama"
     },
@@ -79,7 +79,7 @@
         "condition": "Fair",
         "sellerContact": "emma@ua.edu",
         "description": "Soft area rug, adds warmth to dorm room. Easy to clean.",
-        "itemPhoto": "../images/dormrug.jpg",
+        "itemPhoto": "images/dormrug.jpg",
         "sellerPhoto": "https://i.pravatar.cc/80?img=35",
         "sellerUniversity": "University of Alabama"
     },
@@ -91,7 +91,7 @@
         "condition": "Good",
         "sellerContact": "marcus@ua.edu",
         "description": "White bookshelf, perfect for textbooks and decorations.",
-        "itemPhoto": "../images/bookshelf.jpg",
+        "itemPhoto": "images/bookshelf.jpg",
         "sellerPhoto": "https://i.pravatar.cc/80?img=19",
         "sellerUniversity": "University of Alabama"
     }
