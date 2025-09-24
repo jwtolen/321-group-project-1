@@ -421,13 +421,15 @@ document.addEventListener('DOMContentLoaded', () => {
     currentEditId = id;
     
     // Populate edit form
-    document.getElementById('editTitle').value = listing.title;
-    document.getElementById('editPrice').value = listing.price;
-    document.getElementById('editCategory').value = listing.category;
-    document.getElementById('editCondition').value = listing.condition;
-    document.getElementById('editSellerName').value = listing.sellerContact;
-    document.getElementById('editContact').value = listing.sellerContact;
-    document.getElementById('editDescription').value = listing.description;
+    document.getElementById('editTitle').value = listing.title || '';
+    document.getElementById('editPrice').value = listing.price || '';
+    document.getElementById('editCategory').value = listing.category || '';
+    document.getElementById('editCondition').value = listing.condition || '';
+    // Extract name from email (everything before @)
+    const sellerName = listing.sellerContact ? listing.sellerContact.split('@')[0] : '';
+    document.getElementById('editSellerName').value = sellerName;
+    document.getElementById('editContact').value = listing.sellerContact || '';
+    document.getElementById('editDescription').value = listing.description || '';
     
     const modal = bootstrap.Modal.getOrCreateInstance(elements.editListingModal);
     modal.show();
@@ -529,15 +531,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const listings = await readListings();
     const originalListing = listings.find(l => l.id == currentEditId);
     
+    // Get form values
+    const sellerName = document.getElementById('editSellerName').value.trim();
+    const contactEmail = document.getElementById('editContact').value.trim();
+    
+    // Validate required fields
+    if (!contactEmail || !contactEmail.includes('@')) {
+      showToast('Please enter a valid email address', 'danger');
+      return;
+    }
+    
     // Create updated listing object
     const updatedListing = {
       id: parseInt(currentEditId),
-      title: document.getElementById('editTitle').value,
+      title: document.getElementById('editTitle').value.trim(),
       price: document.getElementById('editPrice').value,
       category: document.getElementById('editCategory').value,
       condition: document.getElementById('editCondition').value,
-      sellerContact: document.getElementById('editContact').value,
-      description: document.getElementById('editDescription').value,
+      sellerContact: contactEmail, // Use the email field directly
+      description: document.getElementById('editDescription').value.trim(),
       itemPhoto: originalListing?.itemPhoto || '', // Preserve existing item photo
       sellerPhoto: originalListing?.sellerPhoto || '', // Preserve existing seller photo
       sellerUniversity: originalListing?.sellerUniversity || 'University of Alabama' // Preserve existing university
