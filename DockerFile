@@ -1,0 +1,21 @@
+# ---------- Build stage ----------
+    FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+    WORKDIR /src
+    
+    # Copy project file and restore (better caching)
+    COPY api/*.csproj ./
+    RUN dotnet restore ./api.csproj
+    
+    # Copy the rest and publish
+    COPY api/. .
+    RUN dotnet publish -c Release -o /app/out
+    
+    # ---------- Runtime stage ----------
+    FROM mcr.microsoft.com/dotnet/aspnet:8.0
+    WORKDIR /app
+    COPY --from=build /app/out .
+    
+    # Render provides $PORT. Default to 8080 for local runs.
+    EXPOSE 8080
+    CMD ["bash","-lc","dotnet api.dll --urls http://0.0.0.0:${PORT:-8080}"]
+    
