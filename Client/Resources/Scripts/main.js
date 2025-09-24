@@ -493,8 +493,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Mobile admin login
-  if (elements.adminLoginBtnMobile) {
-    elements.adminLoginBtnMobile.addEventListener('click', () => {
+  const adminLoginBtnMobile = document.getElementById('adminLoginBtnMobile');
+  if (adminLoginBtnMobile) {
+    adminLoginBtnMobile.addEventListener('click', () => {
       const modal = bootstrap.Modal.getOrCreateInstance(elements.adminLoginModal);
       modal.show();
     });

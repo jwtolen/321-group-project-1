@@ -55,6 +55,19 @@ body {
   
   /* Mobile layout is now handled by separate HTML structure */
   
+  /* Mobile button styling */
+  .navbar .d-flex.d-lg-none .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    min-height: 44px;
+    min-width: 80px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
   .navbar .btn {
     padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
