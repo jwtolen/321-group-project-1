@@ -16,6 +16,18 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
+    
+    // Production CORS policy for Render
+    options.AddPolicy("Production", policy =>
+    {
+        policy.WithOrigins(
+                "https://yourapp.onrender.com", // Replace with your actual Render URL
+                "http://localhost:3000", // For local development
+                "http://localhost:8080"  // Alternative local port
+              )
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
 var app = builder.Build();
@@ -27,12 +39,27 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection in development
+// Render handles HTTPS termination at the load balancer level
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseCors("AllowAll");
+// Use appropriate CORS policy based on environment
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("AllowAll");
+}
+else
+{
+    app.UseCors("Production");
+}
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+// Configure port for Render deployment
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Run($"http://0.0.0.0:{port}");

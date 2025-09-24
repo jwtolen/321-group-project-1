@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // API Configuration
+  const API_CONFIG = {
+    baseUrl: window.location.hostname === 'localhost' 
+      ? 'http://localhost:5223' 
+      : window.location.origin, // Use current domain for production
+    endpoints: {
+      listings: '/api/ItemListing',
+      listingById: (id) => `/api/ItemListing/${id}`
+    }
+  };
+
   // DOM Elements
   const elements = {
     // Main UI
@@ -77,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function readListings() {
     try {
-      const response = await fetch('http://localhost:5223/api/ItemListing');
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listings}`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return await response.json();
     } catch (err) {
@@ -88,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function deleteListing(id) {
     try {
-      const response = await fetch(`http://localhost:5223/api/ItemListing/${id}`, {
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listingById(id)}`, {
         method: 'DELETE'
       });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -101,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function updateListing(listing) {
     try {
-      const response = await fetch(`http://localhost:5223/api/ItemListing/${listing.id}`, {
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listingById(listing.id)}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -118,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function createListing(listing) {
     try {
-      const response = await fetch('http://localhost:5223/api/ItemListing', {
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listings}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

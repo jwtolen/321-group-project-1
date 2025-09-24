@@ -57,3 +57,4 @@ C:\Users\johnw\OneDrive\Desktop\MIS321\Group_Project_1\api\obj\Debug\net8.0\refi
 C:\Users\johnw\OneDrive\Desktop\MIS321\Group_Project_1\api\obj\Debug\net8.0\api.pdb
 C:\Users\johnw\OneDrive\Desktop\MIS321\Group_Project_1\api\obj\Debug\net8.0\api.genruntimeconfig.cache
 C:\Users\johnw\OneDrive\Desktop\MIS321\Group_Project_1\api\obj\Debug\net8.0\ref\api.dll
+C:\Users\johnw\OneDrive\Desktop\MIS321\Group_Project_1\api\obj\Debug\net8.0\api.sourcelink.json
