@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Admin
     adminLoginBtn: document.getElementById('adminLoginBtn'),
+    adminLoginBtnMobile: document.getElementById('adminLoginBtnMobile'),
     adminLoginModal: document.getElementById('adminLoginModal'),
     adminLoginSubmit: document.getElementById('adminLoginSubmit'),
     adminUsername: document.getElementById('adminUsername'),
@@ -470,17 +471,34 @@ document.addEventListener('DOMContentLoaded', () => {
     .forEach(el => el.addEventListener('change', async () => await applyFilters()));
   elements.resetFiltersBtn.addEventListener('click', async () => await resetFilters());
 
-  // Post button
+  // Post button (desktop and mobile)
   elements.postBtn.addEventListener('click', () => {
     const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('postOffcanvas'));
     modal.show();
   });
 
-  // Admin login
+  // Mobile post button
+  const postBtnMobile = document.getElementById('postBtnMobile');
+  if (postBtnMobile) {
+    postBtnMobile.addEventListener('click', () => {
+      const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('postOffcanvas'));
+      modal.show();
+    });
+  }
+
+  // Admin login (desktop and mobile)
   elements.adminLoginBtn.addEventListener('click', () => {
     const modal = bootstrap.Modal.getOrCreateInstance(elements.adminLoginModal);
     modal.show();
   });
+
+  // Mobile admin login
+  if (elements.adminLoginBtnMobile) {
+    elements.adminLoginBtnMobile.addEventListener('click', () => {
+      const modal = bootstrap.Modal.getOrCreateInstance(elements.adminLoginModal);
+      modal.show();
+    });
+  }
 
   elements.adminLoginSubmit.addEventListener('click', () => {
     const username = elements.adminUsername.value;

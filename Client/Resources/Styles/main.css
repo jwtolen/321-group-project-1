@@ -53,23 +53,7 @@ body {
     margin: 0.5rem;
   }
   
-  .navbar .d-flex {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-  }
-  
-  .navbar-brand {
-    font-size: 1.1rem !important;
-    margin: 0 !important;
-    flex-shrink: 0;
-    order: 2;
-    text-align: center;
-    flex: 1;
-    min-width: 0;
-  }
+  /* Mobile layout is now handled by separate HTML structure */
   
   .navbar .btn {
     padding: 0.5rem 0.75rem;
@@ -81,17 +65,14 @@ body {
   
   .navbar .btn-outline-secondary {
     min-width: auto;
-    order: 1;
   }
   
   .navbar .btn-primary {
     min-width: auto;
-    order: 3;
   }
   
   .navbar .dropdown-toggle {
     min-width: auto;
-    order: 4;
   }
   
   /* Hide text on very small screens, show only icons */
