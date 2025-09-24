@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Production", policy =>
     {
         policy.WithOrigins(
-                "https://yourapp.onrender.com", // Replace with your actual Render URL
+                "https://ttowntradingpost.onrender.com", // Your actual Render URL
                 "http://localhost:3000", // For local development
                 "http://localhost:8080"  // Alternative local port
               )
