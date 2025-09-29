@@ -671,40 +671,60 @@ document.addEventListener('DOMContentLoaded', () => {
     await handlePasswordVerification();
   });
 
-  // Remove my listing button - use event delegation
-  document.addEventListener('click', async (e) => {
-    if (e.target && e.target.id === 'removeMyListingBtn') {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('Remove my listing button clicked!');
+  // Remove my listing button - use direct event listener
+  function setupRemoveListingButton() {
+    const removeBtn = document.getElementById('removeMyListingBtn');
+    if (removeBtn) {
+      // Remove any existing listeners
+      removeBtn.removeEventListener('click', handleRemoveListing);
+      // Add new listener
+      removeBtn.addEventListener('click', handleRemoveListing);
+      console.log('Remove listing button event listener attached');
+    } else {
+      console.log('Remove listing button not found, will retry...');
+      // Retry after a short delay
+      setTimeout(setupRemoveListingButton, 100);
+    }
+  }
+  
+  window.handleRemoveListing = async function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Remove my listing button clicked!');
+    
+    const passwordInput = document.getElementById('detailPasswordInput');
+    const password = passwordInput ? passwordInput.value.trim() : '';
+    
+    console.log('Password value:', password);
+    console.log('Current detail ID:', currentDetailId);
+    
+    if (!password) {
+      showToast('Please enter your listing password', 'warning');
+      return;
+    }
+    
+    if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
+      console.log('Proceeding with deletion...');
+      const success = await deleteListing(currentDetailId, password);
+      console.log('Delete result:', success);
       
-      const passwordInput = document.getElementById('detailPasswordInput');
-      const password = passwordInput ? passwordInput.value.trim() : '';
-      
-      console.log('Password value:', password);
-      console.log('Current detail ID:', currentDetailId);
-      
-      if (!password) {
-        showToast('Please enter your listing password', 'warning');
-        return;
-      }
-      
-      if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
-        console.log('Proceeding with deletion...');
-        const success = await deleteListing(currentDetailId, password);
-        console.log('Delete result:', success);
-        
-        if (success) {
-          showToast('Your listing has been removed', 'success');
-          if (passwordInput) passwordInput.value = '';
-          bootstrap.Modal.getInstance(elements.detailModal)?.hide();
-          await loadListings();
-        } else {
-          showToast('Invalid password or failed to remove listing', 'danger');
-        }
+      if (success) {
+        showToast('Your listing has been removed', 'success');
+        if (passwordInput) passwordInput.value = '';
+        bootstrap.Modal.getInstance(elements.detailModal)?.hide();
+        await loadListings();
+      } else {
+        showToast('Invalid password or failed to remove listing', 'danger');
       }
     }
-  });
+  }
+  
+  // Setup the button when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupRemoveListingButton);
+  } else {
+    setupRemoveListingButton();
+  }
 
   // Edit listing
   elements.saveEditBtn.addEventListener('click', async () => {
