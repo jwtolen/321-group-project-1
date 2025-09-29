@@ -26,6 +26,7 @@ namespace api.Models
                 Category TEXT NOT NULL,
                 Condition TEXT NOT NULL,
                 SellerContact TEXT NOT NULL,
+                SellerName TEXT,
                 Description TEXT NOT NULL,
                 ItemPhoto TEXT,
                 SellerPhoto TEXT,
@@ -35,6 +36,18 @@ namespace api.Models
             
             using var cmd = new SqliteCommand(createTable, con);
             cmd.ExecuteNonQuery();
+            
+            // Add SellerName column if it doesn't exist (migration for existing databases)
+            try
+            {
+                string addSellerNameColumn = "ALTER TABLE ItemListings ADD COLUMN SellerName TEXT";
+                using var migrationCmd = new SqliteCommand(addSellerNameColumn, con);
+                migrationCmd.ExecuteNonQuery();
+            }
+            catch (SqliteException)
+            {
+                // Column already exists, ignore the error
+            }
         }
 
         public List<ItemListing> GetListings()
@@ -55,11 +68,12 @@ namespace api.Models
                     Category = rdr.GetString(3),
                     Condition = rdr.GetString(4),
                     SellerContact = rdr.GetString(5),
-                    Description = rdr.GetString(6),
-                    ItemPhoto = rdr.IsDBNull(7) ? "" : rdr.GetString(7),
-                    SellerPhoto = rdr.IsDBNull(8) ? "" : rdr.GetString(8),
-                    SellerUniversity = rdr.IsDBNull(9) ? "" : rdr.GetString(9),
-                    PostPassword = rdr.IsDBNull(10) ? "" : rdr.GetString(10)
+                    SellerName = rdr.IsDBNull(6) ? "" : rdr.GetString(6),
+                    Description = rdr.GetString(7),
+                    ItemPhoto = rdr.IsDBNull(8) ? "" : rdr.GetString(8),
+                    SellerPhoto = rdr.IsDBNull(9) ? "" : rdr.GetString(9),
+                    SellerUniversity = rdr.IsDBNull(10) ? "" : rdr.GetString(10),
+                    PostPassword = rdr.IsDBNull(11) ? "" : rdr.GetString(11)
                 });
             }
             return listings;
@@ -80,9 +94,9 @@ namespace api.Models
             string stm = @"UPDATE ItemListings 
                           SET Title = @Title, Price = @Price, Category = @Category, 
                               Condition = @Condition, SellerContact = @SellerContact, 
-                              Description = @Description, ItemPhoto = @ItemPhoto, 
-                              SellerPhoto = @SellerPhoto, SellerUniversity = @SellerUniversity,
-                              PostPassword = @PostPassword 
+                              SellerName = @SellerName, Description = @Description, 
+                              ItemPhoto = @ItemPhoto, SellerPhoto = @SellerPhoto, 
+                              SellerUniversity = @SellerUniversity, PostPassword = @PostPassword 
                           WHERE Id = @Id";
             
             using var con = new SqliteConnection(cs);
@@ -94,6 +108,7 @@ namespace api.Models
             cmd.Parameters.AddWithValue("@Category", listing.Category ?? "");
             cmd.Parameters.AddWithValue("@Condition", listing.Condition ?? "");
             cmd.Parameters.AddWithValue("@SellerContact", listing.SellerContact ?? "");
+            cmd.Parameters.AddWithValue("@SellerName", listing.SellerName ?? "");
             cmd.Parameters.AddWithValue("@Description", listing.Description ?? "");
             cmd.Parameters.AddWithValue("@ItemPhoto", listing.ItemPhoto ?? "");
             cmd.Parameters.AddWithValue("@SellerPhoto", listing.SellerPhoto ?? "");
@@ -105,8 +120,8 @@ namespace api.Models
 
         public void AddListing(ItemListing listing)
         {
-            string stm = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, Description, ItemPhoto, SellerPhoto, SellerUniversity, PostPassword) 
-                          VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity, @PostPassword)";
+            string stm = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, SellerName, Description, ItemPhoto, SellerPhoto, SellerUniversity, PostPassword) 
+                          VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @SellerName, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity, @PostPassword)";
             
             using var con = new SqliteConnection(cs);
             con.Open();
@@ -117,6 +132,7 @@ namespace api.Models
             cmd.Parameters.AddWithValue("@Category", listing.Category ?? "");
             cmd.Parameters.AddWithValue("@Condition", listing.Condition ?? "");
             cmd.Parameters.AddWithValue("@SellerContact", listing.SellerContact ?? "");
+            cmd.Parameters.AddWithValue("@SellerName", listing.SellerName ?? "");
             cmd.Parameters.AddWithValue("@Description", listing.Description ?? "");
             cmd.Parameters.AddWithValue("@ItemPhoto", listing.ItemPhoto ?? "");
             cmd.Parameters.AddWithValue("@SellerPhoto", listing.SellerPhoto ?? "");
