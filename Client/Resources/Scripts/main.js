@@ -476,12 +476,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Detail Modal
   async function openDetail(id) {
+    console.log('openDetail called with ID:', id);
     currentDetailId = id;
     window.currentDetailId = id;
     console.log('Set currentDetailId to:', id);
+    console.log('window.currentDetailId is now:', window.currentDetailId);
     const listings = await readListings();
     const l = listings.find(x => x.id === id);
-    if (!l) return;
+    if (!l) {
+      console.error('Listing not found for ID:', id);
+      return;
+    }
+    console.log('Found listing:', l);
     
     elements.detailTitle.textContent = l.title;
     
@@ -518,9 +524,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Store the ID in the modal as a data attribute
     elements.detailModal.setAttribute('data-listing-id', id);
+    console.log('Set modal data-listing-id to:', id);
+    console.log('Modal data-listing-id is now:', elements.detailModal.getAttribute('data-listing-id'));
     
     const modal = bootstrap.Modal.getOrCreateInstance(elements.detailModal);
+    console.log('About to show modal');
     modal.show();
+    console.log('Modal shown');
   }
 
   // Admin Functions
