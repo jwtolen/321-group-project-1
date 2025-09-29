@@ -265,6 +265,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const detailPrice = document.getElementById('detailPrice');
     const detailDescription = document.getElementById('detailDescription');
     const detailContact = document.getElementById('detailContact');
+    const detailSellerAvatar = document.getElementById('detailSellerAvatar');
+    const detailSellerName = document.getElementById('detailSellerName');
+    const detailSellerMeta = document.getElementById('detailSellerMeta');
     
     if (detailTitle) detailTitle.textContent = listing.title;
     if (detailCategory) detailCategory.textContent = listing.category;
@@ -272,6 +275,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (detailPrice) detailPrice.textContent = `$${Number(listing.price).toFixed(2)}`;
     if (detailDescription) detailDescription.textContent = listing.description;
     if (detailContact) detailContact.textContent = listing.sellerContact;
+    
+    // Handle seller information
+    if (detailSellerName) detailSellerName.textContent = listing.sellerName || 'Unknown Seller';
+    if (detailSellerMeta) detailSellerMeta.textContent = listing.sellerUniversity || 'Unknown University';
+    
+    // Handle seller avatar
+    if (detailSellerAvatar) {
+      const sellerPhotoUrl = listing.sellerPhoto || '';
+      if (sellerPhotoUrl && !sellerPhotoUrl.includes('placeholder')) {
+        detailSellerAvatar.src = sellerPhotoUrl;
+      } else {
+        detailSellerAvatar.src = 'https://via.placeholder.com/80x80.png?text=User';
+      }
+    }
     
     // Handle image
     if (detailImage) {
@@ -466,6 +483,24 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('editContact').value = listing.sellerContact;
           document.getElementById('editDescription').value = listing.description;
           
+          // Populate existing images
+          const editItemImagePreview = document.getElementById('editItemImagePreview');
+          const editSellerImagePreview = document.getElementById('editSellerImagePreview');
+          
+          if (listing.itemPhoto && !listing.itemPhoto.includes('placeholder')) {
+            editItemImagePreview.src = listing.itemPhoto;
+            editItemImagePreview.classList.remove('d-none');
+          } else {
+            editItemImagePreview.classList.add('d-none');
+          }
+          
+          if (listing.sellerPhoto && !listing.sellerPhoto.includes('placeholder')) {
+            editSellerImagePreview.src = listing.sellerPhoto;
+            editSellerImagePreview.classList.remove('d-none');
+          } else {
+            editSellerImagePreview.classList.add('d-none');
+          }
+          
           // Store current edit ID and password
           currentEditId = currentDetailId;
           window.currentEditPassword = password;
@@ -527,6 +562,43 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
+    // Get current images or new ones
+    const editItemImagePreview = document.getElementById('editItemImagePreview');
+    const editSellerImagePreview = document.getElementById('editSellerImagePreview');
+    const editItemImageInput = document.getElementById('editItemImage');
+    const editSellerImageInput = document.getElementById('editSellerImage');
+    
+    // Use new image if uploaded, otherwise keep existing
+    let itemPhoto = editItemImagePreview.src;
+    let sellerPhoto = editSellerImagePreview.src;
+    
+    // Process new images if uploaded
+    if (editItemImageInput.files && editItemImageInput.files[0]) {
+      try {
+        const reader = new FileReader();
+        const fileData = await new Promise((resolve) => {
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(editItemImageInput.files[0]);
+        });
+        itemPhoto = await resizeDataUrl(fileData, 1200, 1200, 0.8);
+      } catch (error) {
+        console.error('Error processing item image:', error);
+      }
+    }
+    
+    if (editSellerImageInput.files && editSellerImageInput.files[0]) {
+      try {
+        const reader = new FileReader();
+        const fileData = await new Promise((resolve) => {
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(editSellerImageInput.files[0]);
+        });
+        sellerPhoto = await resizeDataUrl(fileData, 256, 256, 0.85);
+      } catch (error) {
+        console.error('Error processing seller image:', error);
+      }
+    }
+
     const editData = {
       id: currentEditId,
       title: document.getElementById('editTitle').value.trim(),
@@ -535,6 +607,8 @@ document.addEventListener('DOMContentLoaded', function() {
       condition: document.getElementById('editCondition').value,
       sellerContact: document.getElementById('editContact').value.trim(),
       description: document.getElementById('editDescription').value.trim(),
+      itemPhoto: itemPhoto,
+      sellerPhoto: sellerPhoto,
       postPassword: window.currentEditPassword
     };
     
@@ -596,6 +670,39 @@ document.addEventListener('DOMContentLoaded', function() {
     reader.onload = () => {
       elements.imagePreview.src = reader.result;
       elements.imagePreview.classList.remove('d-none');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Edit form image previews
+  document.getElementById('editItemImage').addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    const preview = document.getElementById('editItemImagePreview');
+    if (!file) {
+      preview.classList.add('d-none');
+      preview.src = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      preview.src = reader.result;
+      preview.classList.remove('d-none');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('editSellerImage').addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    const preview = document.getElementById('editSellerImagePreview');
+    if (!file) {
+      preview.classList.add('d-none');
+      preview.src = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      preview.src = reader.result;
+      preview.classList.remove('d-none');
     };
     reader.readAsDataURL(file);
   });
@@ -664,6 +771,19 @@ document.addEventListener('DOMContentLoaded', function() {
     await applyFilters();
     populateUniversityOptions();
   });
+
+  // Admin login event listeners
+  elements.adminLoginBtn.addEventListener('click', () => {
+    const modal = bootstrap.Modal.getOrCreateInstance(elements.adminLoginModal);
+    modal.show();
+  });
+
+  if (elements.adminLoginBtnMobile) {
+    elements.adminLoginBtnMobile.addEventListener('click', () => {
+      const modal = bootstrap.Modal.getOrCreateInstance(elements.adminLoginModal);
+      modal.show();
+    });
+  }
 
   // Initialize
   populateUniversityOptions();

@@ -448,6 +448,28 @@
                 <label for="editDescription" class="form-label">Description</label>
                 <textarea class="form-control" id="editDescription" rows="3" required></textarea>
               </div>
+              
+              <!-- Image Upload Section -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editItemImage" class="form-label">Item Photo (Optional)</label>
+                    <input class="form-control" type="file" id="editItemImage" accept="image/*" />
+                    <div class="mt-2">
+                      <img id="editItemImagePreview" alt="Item preview" class="img-fluid rounded d-none" style="max-height: 150px; width: 100%; object-fit: cover;" />
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editSellerImage" class="form-label">Your Photo (Optional)</label>
+                    <input class="form-control" type="file" id="editSellerImage" accept="image/*" />
+                    <div class="mt-2">
+                      <img id="editSellerImagePreview" class="avatar avatar-md d-none" alt="Your photo preview" />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </form>
           </div>
           <div class="modal-footer">
