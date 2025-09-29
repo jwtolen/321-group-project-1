@@ -117,8 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: password ? JSON.stringify({ password: password }) : undefined
+        body: password ? JSON.stringify({ Password: password }) : undefined
       });
+      
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return true;
     } catch (err) {
@@ -671,25 +672,31 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Remove my listing button
-  elements.removeMyListingBtn.addEventListener('click', async () => {
-    const password = elements.detailPasswordInput.value.trim();
-    if (!password) {
-      showToast('Please enter your listing password', 'warning');
-      return;
-    }
-    
-    if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
-      const success = await deleteListing(currentDetailId, password);
-      if (success) {
-        showToast('Your listing has been removed', 'success');
-        elements.detailPasswordInput.value = '';
-        bootstrap.Modal.getInstance(elements.detailModal)?.hide();
-        await loadListings();
-      } else {
-        showToast('Invalid password or failed to remove listing', 'danger');
+  if (elements.removeMyListingBtn) {
+    elements.removeMyListingBtn.addEventListener('click', async () => {
+      const password = elements.detailPasswordInput.value.trim();
+      
+      if (!password) {
+        showToast('Please enter your listing password', 'warning');
+        return;
       }
-    }
-  });
+      
+      if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
+        const success = await deleteListing(currentDetailId, password);
+        
+        if (success) {
+          showToast('Your listing has been removed', 'success');
+          elements.detailPasswordInput.value = '';
+          bootstrap.Modal.getInstance(elements.detailModal)?.hide();
+          await loadListings();
+        } else {
+          showToast('Invalid password or failed to remove listing', 'danger');
+        }
+      }
+    });
+  } else {
+    console.error('removeMyListingBtn element not found');
+  }
 
   // Edit listing
   elements.saveEditBtn.addEventListener('click', async () => {
