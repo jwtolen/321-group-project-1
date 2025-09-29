@@ -1,3 +1,6 @@
+// Test to make sure JavaScript is running
+console.log('=== JAVASCRIPT IS LOADING ===');
+
 // Global function for remove listing - defined at top level
 window.handleRemoveListing = async function(e) {
   e.preventDefault();
@@ -35,7 +38,9 @@ window.handleRemoveListing = async function(e) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  // API Configuration
+  try {
+    console.log('=== DOM CONTENT LOADED ===');
+    // API Configuration
   const API_CONFIG = {
     baseUrl: window.location.hostname === 'localhost' 
       ? 'http://localhost:5223' 
@@ -424,7 +429,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgContainer = col.querySelector(`#img-${listing.id}`);
     imgContainer.appendChild(img);
     
-    col.querySelector('.card').addEventListener('click', async () => await openDetail(listing.id));
+    col.querySelector('.card').addEventListener('click', async () => {
+      console.log('=== CARD CLICKED ===');
+      console.log('Listing ID:', listing.id);
+      await openDetail(listing.id);
+    });
     return col;
   }
 
@@ -478,6 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Detail Modal
   async function openDetail(id) {
+    console.log('=== OPEN DETAIL FUNCTION CALLED ===');
     console.log('openDetail called with ID:', id);
     currentDetailId = id;
     window.currentDetailId = id;
@@ -950,4 +960,8 @@ document.addEventListener('DOMContentLoaded', () => {
       window.handleRemoveListing(e);
     }
   });
+  } catch (error) {
+    console.error('=== JAVASCRIPT ERROR ===');
+    console.error('Error in main script:', error);
+  }
 });
