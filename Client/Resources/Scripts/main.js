@@ -64,7 +64,7 @@ window.handleOnLoad = async function() {
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM Content Loaded in main script');
   
-  // Basic API configuration
+  // API Configuration
   const API_CONFIG = {
     baseUrl: window.location.hostname === 'localhost' 
       ? 'http://localhost:5223' 
@@ -75,6 +75,87 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
+  // DOM Elements
+  const elements = {
+    // Main UI
+    grid: document.getElementById('listingsGrid'),
+    resultsCount: document.getElementById('resultsCount'),
+    adminPage: document.getElementById('adminPage'),
+    
+    // Filters
+    searchInput: document.getElementById('searchInput'),
+    categorySelect: document.getElementById('categorySelect'),
+    universitySelect: document.getElementById('universitySelect'),
+    universityDropdown: document.getElementById('universityDropdown'),
+    universityText: document.getElementById('universityText'),
+    universityDropdownMenu: document.getElementById('universityDropdownMenu'),
+    conditionSelect: document.getElementById('conditionSelect'),
+    priceMin: document.getElementById('priceMin'),
+    priceMax: document.getElementById('priceMax'),
+    sortSelect: document.getElementById('sortSelect'),
+    resetFiltersBtn: document.getElementById('resetFiltersBtn'),
+    
+    // Post form
+    postBtn: document.getElementById('postBtn'),
+    postForm: document.getElementById('postForm'),
+    titleInput: document.getElementById('titleInput'),
+    priceInput: document.getElementById('priceInput'),
+    categoryInput: document.getElementById('categoryInput'),
+    conditionInput: document.getElementById('conditionInput'),
+    contactInput: document.getElementById('contactInput'),
+    descriptionInput: document.getElementById('descriptionInput'),
+    imageInput: document.getElementById('imageInput'),
+    imagePreview: document.getElementById('imagePreview'),
+    sellerNameInput: document.getElementById('sellerNameInput'),
+    sellerUniversityInput: document.getElementById('sellerUniversityInput'),
+    sellerAvatarInput: document.getElementById('sellerAvatarInput'),
+    sellerAvatarPreview: document.getElementById('sellerAvatarPreview'),
+    postPasswordInput: document.getElementById('postPasswordInput'),
+    
+    // Detail modal
+    detailModal: document.getElementById('detailModal'),
+    
+    // Password prompt modal
+    passwordPromptModal: document.getElementById('passwordPromptModal'),
+    passwordPromptInput: document.getElementById('passwordPromptInput'),
+    passwordPromptSubmit: document.getElementById('passwordPromptSubmit'),
+    
+    // Detail modal self-deletion
+    detailPasswordInput: document.getElementById('detailPasswordInput'),
+    removeMyListingBtn: document.getElementById('removeMyListingBtn'),
+    detailTitle: document.getElementById('detailTitle'),
+    detailImage: document.getElementById('detailImage'),
+    detailCategory: document.getElementById('detailCategory'),
+    detailCondition: document.getElementById('detailCondition'),
+    detailPrice: document.getElementById('detailPrice'),
+    detailDescription: document.getElementById('detailDescription'),
+    detailSellerAvatar: document.getElementById('detailSellerAvatar'),
+    detailSellerName: document.getElementById('detailSellerName'),
+    detailSellerMeta: document.getElementById('detailSellerMeta'),
+    detailContact: document.getElementById('detailContact'),
+    
+    // Admin
+    adminLoginBtn: document.getElementById('adminLoginBtn'),
+    adminLoginBtnMobile: document.getElementById('adminLoginBtnMobile'),
+    adminLoginModal: document.getElementById('adminLoginModal'),
+    adminLoginSubmit: document.getElementById('adminLoginSubmit'),
+    adminUsername: document.getElementById('adminUsername'),
+    adminPassword: document.getElementById('adminPassword'),
+    logoutBtn: document.getElementById('logoutBtn'),
+    editListingModal: document.getElementById('editListingModal'),
+    saveEditBtn: document.getElementById('saveEditBtn'),
+    
+    // Toast
+    toastContainer: document.getElementById('toastContainer')
+  };
+
+  // State
+  let isAdminLoggedIn = false;
+  let currentDetailId = null;
+  let currentEditId = null;
+  let currentAction = null; // 'edit' or 'delete'
+  let currentListingId = null;
+  
   // Basic function to load listings
   async function readListings() {
     try {
@@ -87,60 +168,147 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Basic function to apply filters
-  async function applyFilters() {
-    const raw = await readListings();
-    const grid = document.getElementById('listingsGrid');
-    const resultsCount = document.getElementById('resultsCount');
-    
-    if (grid) {
-      grid.innerHTML = '';
-      raw.forEach(listing => {
+  // Utility Functions
+  function formatPrice(value) {
+    return `$${Number(value).toFixed(2)}`;
+  }
+
+  function setAvatarImage(imgEl, src, alt) {
+    imgEl.src = src && src.length ? src : 'https://via.placeholder.com/80x80.png?text=User';
+    imgEl.alt = alt || 'avatar';
+  }
+
+  // Image handling
+  function dataUrlToImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
+  async function resizeDataUrl(dataUrl, maxW, maxH, quality = 0.8) {
+    try {
+      const img = await dataUrlToImage(dataUrl);
+      const ratio = Math.min(maxW / img.width, maxH / img.height, 1);
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      return canvas.toDataURL('image/jpeg', quality);
+    } catch {
+      return dataUrl;
+    }
+  }
+
+  // UI Rendering
+  function createCard(listing) {
     const col = document.createElement('div');
     col.className = 'col';
     
-        // Handle images properly
+    const img = document.createElement('img');
+    img.className = 'card-img-top img-cover';
+    img.alt = listing.title;
+    // Handle images with proper API data structure
     const imageUrl = listing.itemPhoto || '';
     const isPlaceholder = imageUrl.includes('via.placeholder.com') || imageUrl.includes('placeholder') || imageUrl === '';
     
-        let imageHtml = '';
     if (isPlaceholder) {
-          imageHtml = '<div style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 14px; height: 200px;">No Image</div>';
+      img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzZjNzU3ZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
     } else {
-          imageHtml = `<img src="${imageUrl}" class="card-img-top img-cover" alt="${listing.title}" style="height: 200px; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <div style="background: #f8f9fa; display: none; align-items: center; justify-content: center; color: #6c757d; font-size: 14px; height: 200px;">No Image</div>`;
+      img.src = imageUrl;
+      img.onerror = function() {
+        this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzZjNzU3ZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+      };
     }
     
     col.innerHTML = `
       <div class="card h-100 shadow-sm cursor-pointer" data-id="${listing.id}">
-            ${imageHtml}
+        <div class="card-img-top img-cover" style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 14px;">
+          <div id="img-${listing.id}"></div>
+        </div>
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start">
             <h3 class="h6 mb-1 clamp-2">${listing.title}</h3>
             <span class="badge text-bg-primary ms-2">${listing.category}</span>
           </div>
-              <div class="text-success fw-semibold">$${Number(listing.price).toFixed(2)}</div>
+          <div class="text-success fw-semibold">${formatPrice(listing.price)}</div>
           <div class="text-secondary small">${listing.condition}</div>
-            </div>
+          <div class="mt-2 d-flex gap-1">
+            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); showPasswordPrompt('edit', ${listing.id})">
+              <i class="bi bi-pencil"></i> Edit
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showPasswordPrompt('delete', ${listing.id})">
+              <i class="bi bi-trash"></i> Delete
+            </button>
+          </div>
+        </div>
       </div>
     `;
     
-        // Add click handler to open detail modal
-        col.querySelector('.card').addEventListener('click', async () => {
-          console.log('Card clicked, opening detail for ID:', listing.id);
-          window.currentDetailId = listing.id;
-          await openDetail(listing.id);
-        });
-        
-        grid.appendChild(col);
-      });
-    }
+    const imgContainer = col.querySelector(`#img-${listing.id}`);
+    imgContainer.appendChild(img);
     
-    if (resultsCount) {
-      resultsCount.textContent = `${raw.length} result${raw.length !== 1 ? 's' : ''}`;
-    }
+    col.querySelector('.card').addEventListener('click', async () => {
+      console.log('=== CARD CLICKED ===');
+      console.log('Listing ID:', listing.id);
+      await openDetail(listing.id);
+    });
+    return col;
   }
-  
+
+  function render(list) {
+    elements.grid.innerHTML = '';
+    list.forEach(l => elements.grid.appendChild(createCard(l)));
+    elements.resultsCount.textContent = `${list.length} result${list.length !== 1 ? 's' : ''}`;
+  }
+
+  // Filtering and Search
+  async function applyFilters() {
+    const raw = await readListings();
+    const q = (elements.searchInput.value || '').trim().toLowerCase();
+    const cat = elements.categorySelect.value;
+    const uni = elements.universityText ? elements.universityText.textContent === 'All' ? '' : elements.universityText.textContent : '';
+    const cond = elements.conditionSelect.value;
+    const min = parseFloat(elements.priceMin.value);
+    const max = parseFloat(elements.priceMax.value);
+    const sort = elements.sortSelect.value;
+
+    let res = raw.filter(l => {
+      const matchesQ = !q || l.title.toLowerCase().includes(q) || l.description.toLowerCase().includes(q);
+      const matchesCat = !cat || l.category === cat;
+      const matchesUni = !uni || l.sellerUniversity === uni;
+      const matchesCond = !cond || l.condition === cond;
+      const price = parseFloat(l.price);
+      const matchesMin = isNaN(min) || price >= min;
+      const matchesMax = isNaN(max) || price <= max;
+      return matchesQ && matchesCat && matchesUni && matchesCond && matchesMin && matchesMax;
+    });
+
+    if (sort === 'price_asc') res.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+    else if (sort === 'price_desc') res.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+    else res.sort((a, b) => (a.id < b.id ? 1 : -1));
+
+    render(res);
+  }
+
+  async function resetFilters() {
+    elements.searchInput.value = '';
+    elements.categorySelect.value = '';
+    if (elements.universityText) {
+      elements.universityText.textContent = 'All';
+    }
+    elements.conditionSelect.value = '';
+    elements.priceMin.value = '';
+    elements.priceMax.value = '';
+    elements.sortSelect.value = '';
+    await applyFilters();
+  }
+
   // Basic openDetail function
   async function openDetail(id) {
     console.log('openDetail called with ID:', id);
@@ -269,8 +437,8 @@ document.addEventListener('DOMContentLoaded', function() {
           const universityDropdown = document.getElementById('universityDropdown');
           if (universityDropdown) {
             const dropdown = bootstrap.Dropdown.getInstance(universityDropdown);
-            if (dropdown) {
-              dropdown.hide();
+          if (dropdown) {
+            dropdown.hide();
             }
           }
           
@@ -280,6 +448,160 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   }
+
+  // Additional functions needed
+  async function createListing(listing) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listings}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(listing)
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return true;
+    } catch (err) {
+      console.error('Failed to create listing', err);
+      return false;
+    }
+  }
+
+  function generateId() {
+    return Math.floor(Math.random() * 1000000) + 1000;
+  }
+
+  // Toast notifications
+  function showToast(message, type = 'primary') {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+      <div class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    `;
+    const toastEl = wrapper.firstElementChild;
+    elements.toastContainer.appendChild(toastEl);
+    const toast = new bootstrap.Toast(toastEl, { delay: 2000 });
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+  }
+
+  // Make functions globally accessible
+  window.showToast = showToast;
+  window.applyFilters = applyFilters;
+  window.showPasswordPrompt = function(action, listingId) {
+    currentAction = action;
+    currentListingId = listingId;
+    elements.passwordPromptInput.value = '';
+    const modal = bootstrap.Modal.getOrCreateInstance(elements.passwordPromptModal);
+    modal.show();
+  };
+
+  // Event Listeners
+  // Search and filters
+  elements.searchInput.addEventListener('input', async () => await applyFilters());
+  [elements.categorySelect, elements.conditionSelect, elements.priceMin, elements.priceMax, elements.sortSelect]
+    .forEach(el => el.addEventListener('change', async () => await applyFilters()));
+  elements.resetFiltersBtn.addEventListener('click', async () => await resetFilters());
+
+  // Post button (desktop and mobile)
+  elements.postBtn.addEventListener('click', () => {
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('postOffcanvas'));
+    modal.show();
+  });
+
+  // Mobile post button
+  const postBtnMobile = document.getElementById('postBtnMobile');
+  if (postBtnMobile) {
+    postBtnMobile.addEventListener('click', () => {
+      const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('postOffcanvas'));
+      modal.show();
+    });
+  }
+
+  // Image previews
+  elements.imageInput.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      elements.imagePreview.classList.add('d-none');
+      elements.imagePreview.src = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      elements.imagePreview.src = reader.result;
+      elements.imagePreview.classList.remove('d-none');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  if (elements.sellerAvatarInput) {
+    elements.sellerAvatarInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) {
+        elements.sellerAvatarPreview.classList.add('d-none');
+        elements.sellerAvatarPreview.src = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        elements.sellerAvatarPreview.src = reader.result;
+        elements.sellerAvatarPreview.classList.remove('d-none');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Post form submission
+  elements.postForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = elements.postForm;
+    form.classList.add('was-validated');
+    if (!form.checkValidity()) return;
+
+    // Compress images
+    const rawItemImg = elements.imagePreview.src || '';
+    const rawAvatar = elements.sellerAvatarPreview.src || '';
+    const image = rawItemImg && rawItemImg.startsWith('data:') ? await resizeDataUrl(rawItemImg, 1200, 1200, 0.8) : rawItemImg;
+    const avatar = rawAvatar && rawAvatar.startsWith('data:') ? await resizeDataUrl(rawAvatar, 256, 256, 0.85) : rawAvatar;
+
+    const newListing = {
+      id: generateId(),
+      title: elements.titleInput.value.trim(),
+      price: elements.priceInput.value,
+      category: elements.categoryInput.value,
+      condition: elements.conditionInput.value,
+      sellerContact: elements.contactInput.value.trim(),
+      description: elements.descriptionInput.value.trim(),
+      itemPhoto: image,
+      sellerPhoto: avatar,
+      sellerUniversity: elements.sellerUniversityInput.value,
+      postPassword: elements.postPasswordInput.value.trim()
+    };
+    
+    const success = await createListing(newListing);
+    if (!success) {
+      showToast('Could not save listing. Please try again.', 'danger');
+      return;
+    }
+
+    // Reset form and close
+    form.reset();
+    form.classList.remove('was-validated');
+    elements.imagePreview.src = '';
+    elements.imagePreview.classList.add('d-none');
+    elements.sellerAvatarPreview.src = '';
+    elements.sellerAvatarPreview.classList.add('d-none');
+    bootstrap.Modal.getInstance(document.getElementById('postOffcanvas'))?.hide();
+    showToast('Listing published', 'success');
+    
+    // Refresh the listings
+    await applyFilters();
+    populateUniversityOptions();
+  });
 
   // Initialize
   populateUniversityOptions();
