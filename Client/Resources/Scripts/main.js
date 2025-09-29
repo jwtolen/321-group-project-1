@@ -27,20 +27,36 @@ window.handleRemoveListing = async function(e) {
   
   if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
     console.log('Proceeding with deletion...');
-    const success = await window.deleteListing(window.currentDetailId, password);
-    console.log('Delete result:', success);
     
-    if (success) {
-      alert('Your listing has been removed');
-      if (passwordInput) passwordInput.value = '';
-      const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
-      if (modal) modal.hide();
-      await window.applyFilters();
-    } else {
-      alert('Invalid password or failed to remove listing');
+    // Make the API call directly
+    try {
+      const response = await fetch(`${window.location.origin}/api/ItemListing/${window.currentDetailId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ Password: password })
+      });
+      
+      if (response.ok) {
+        alert('Your listing has been removed');
+        if (passwordInput) passwordInput.value = '';
+        const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
+        if (modal) modal.hide();
+        // Reload the page to refresh listings
+        location.reload();
+      } else {
+        alert('Invalid password or failed to remove listing');
+      }
+    } catch (error) {
+      console.error('Error deleting listing:', error);
+      alert('Error removing listing');
     }
   }
 };
+
+// Make sure the function is available immediately
+console.log('handleRemoveListing function defined:', typeof window.handleRemoveListing);
 
 document.addEventListener('DOMContentLoaded', () => {
   try {
