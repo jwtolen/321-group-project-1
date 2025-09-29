@@ -25,7 +25,7 @@ window.handleRemoveListing = async function(e) {
       if (passwordInput) passwordInput.value = '';
       const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
       if (modal) modal.hide();
-      await window.loadListings();
+      await window.applyFilters();
     } else {
       window.showToast('Invalid password or failed to remove listing', 'danger');
     }
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.currentDetailId = currentDetailId;
   window.showToast = showToast;
   window.deleteListing = deleteListing;
-  window.loadListings = loadListings;
+  window.applyFilters = applyFilters;
 
   // Data Management
   window.handleOnLoad = async function() {
