@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
     descriptionInput: document.getElementById('descriptionInput'),
     imageInput: document.getElementById('imageInput'),
     imagePreview: document.getElementById('imagePreview'),
-    sellerNameInput: document.getElementById('sellerNameInput'),
     sellerUniversityInput: document.getElementById('sellerUniversityInput'),
     sellerAvatarInput: document.getElementById('sellerAvatarInput'),
     sellerAvatarPreview: document.getElementById('sellerAvatarPreview'),
@@ -277,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (detailContact) detailContact.textContent = listing.sellerContact;
     
     // Handle seller information
-    if (detailSellerName) detailSellerName.textContent = listing.sellerName || 'Unknown Seller';
+    if (detailSellerName) detailSellerName.textContent = 'Seller';
     if (detailSellerMeta) detailSellerMeta.textContent = listing.sellerUniversity || 'Unknown University';
     
     // Handle seller avatar
@@ -442,6 +441,71 @@ document.addEventListener('DOMContentLoaded', function() {
     toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
   }
 
+  // Update admin dashboard
+  async function updateAdminDashboard() {
+    try {
+      const listings = await readListings();
+      
+      // Update statistics
+      document.getElementById('totalListings').textContent = listings.length;
+      document.getElementById('activeListings').textContent = listings.length;
+      document.getElementById('totalUsers').textContent = new Set(listings.map(l => l.sellerContact)).size;
+      
+      // Calculate total revenue (sum of all prices)
+      const totalRevenue = listings.reduce((sum, listing) => {
+        const price = parseFloat(listing.price) || 0;
+        return sum + price;
+      }, 0);
+      document.getElementById('totalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+      
+      // Populate admin listings table
+      const adminTable = document.getElementById('adminListingsTable');
+      adminTable.innerHTML = '';
+      
+      listings.forEach(listing => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${listing.title}</td>
+          <td>$${Number(listing.price).toFixed(2)}</td>
+          <td>${listing.category}</td>
+          <td>${listing.sellerContact}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-danger" onclick="adminDeleteListing(${listing.id})">
+              <i class="bi bi-trash"></i> Delete
+            </button>
+          </td>
+          <td>${listing.postPassword || 'N/A'}</td>
+        `;
+        adminTable.appendChild(row);
+      });
+      
+    } catch (error) {
+      console.error('Error updating admin dashboard:', error);
+      showToast('Error loading admin data', 'danger');
+    }
+  }
+
+  // Admin delete listing function
+  window.adminDeleteListing = async function(listingId) {
+    if (confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+      try {
+        const response = await fetch(`${API_CONFIG.baseUrl}/api/ItemListing/admin/${listingId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          showToast('Listing deleted successfully', 'success');
+          updateAdminDashboard(); // Refresh the admin dashboard
+        } else {
+          showToast('Failed to delete listing', 'danger');
+        }
+      } catch (error) {
+        console.error('Error deleting listing:', error);
+        showToast('Error deleting listing', 'danger');
+      }
+    }
+  };
+
   // Make functions globally accessible
   window.showToast = showToast;
   window.applyFilters = applyFilters;
@@ -479,7 +543,6 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('editPrice').value = listing.price;
           document.getElementById('editCategory').value = listing.category;
           document.getElementById('editCondition').value = listing.condition;
-          document.getElementById('editSellerName').value = listing.sellerName || '';
           document.getElementById('editContact').value = listing.sellerContact;
           document.getElementById('editDescription').value = listing.description;
           
@@ -784,6 +847,58 @@ document.addEventListener('DOMContentLoaded', function() {
       modal.show();
     });
   }
+
+  // Admin login function
+  function handleAdminLogin() {
+    const username = elements.adminUsername.value.trim();
+    const password = elements.adminPassword.value.trim();
+    
+    // Simple admin credentials check (you can change these)
+    if (username === 'admin' && password === 'admin123') {
+      isAdminLoggedIn = true;
+      showToast('Admin login successful!', 'success');
+      bootstrap.Modal.getInstance(elements.adminLoginModal)?.hide();
+      
+      // Show admin page and hide main content
+      elements.adminPage.classList.remove('d-none');
+      document.querySelector('.container').classList.add('d-none');
+      
+      // Update admin dashboard
+      updateAdminDashboard();
+      
+      // Clear login form
+      elements.adminUsername.value = '';
+      elements.adminPassword.value = '';
+    } else {
+      showToast('Invalid admin credentials', 'danger');
+    }
+  }
+
+  // Admin login form submission
+  elements.adminLoginSubmit.addEventListener('click', handleAdminLogin);
+  
+  // Handle Enter key in admin login form
+  elements.adminUsername.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      elements.adminPassword.focus();
+    }
+  });
+  
+  elements.adminPassword.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      handleAdminLogin();
+    }
+  });
+
+  // Logout functionality
+  elements.logoutBtn.addEventListener('click', () => {
+    isAdminLoggedIn = false;
+    showToast('Logged out successfully', 'info');
+    
+    // Hide admin page and show main content
+    elements.adminPage.classList.add('d-none');
+    document.querySelector('.container').classList.remove('d-none');
+  });
 
   // Initialize
   populateUniversityOptions();
