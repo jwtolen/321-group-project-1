@@ -3,11 +3,16 @@ console.log('=== JAVASCRIPT IS LOADING ===');
 
 // Global function for remove listing - defined at top level
 window.handleRemoveListing = async function(e) {
-  e.preventDefault();
-  e.stopPropagation();
+  console.log('=== HANDLE REMOVE LISTING CALLED ===');
+  
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
   console.log('Remove my listing button clicked!');
   console.log('Event:', e);
-  console.log('Target:', e.target);
+  console.log('Target:', e ? e.target : 'no event');
   
   const passwordInput = document.getElementById('detailPasswordInput');
   const password = passwordInput ? passwordInput.value.trim() : '';
@@ -16,7 +21,7 @@ window.handleRemoveListing = async function(e) {
   console.log('Current detail ID:', window.currentDetailId);
   
   if (!password) {
-    window.showToast('Please enter your listing password', 'warning');
+    alert('Please enter your listing password');
     return;
   }
   
@@ -26,13 +31,13 @@ window.handleRemoveListing = async function(e) {
     console.log('Delete result:', success);
     
     if (success) {
-      window.showToast('Your listing has been removed', 'success');
+      alert('Your listing has been removed');
       if (passwordInput) passwordInput.value = '';
       const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
       if (modal) modal.hide();
       await window.applyFilters();
     } else {
-      window.showToast('Invalid password or failed to remove listing', 'danger');
+      alert('Invalid password or failed to remove listing');
     }
   }
 };
@@ -541,8 +546,30 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const modal = bootstrap.Modal.getOrCreateInstance(elements.detailModal);
     console.log('About to show modal');
+    
+    // Ensure the modal is properly configured
+    elements.detailModal.setAttribute('aria-hidden', 'false');
+    elements.detailModal.removeAttribute('aria-hidden');
+    
     modal.show();
     console.log('Modal shown');
+    
+    // Ensure aria-hidden is properly managed after showing
+    setTimeout(() => {
+      elements.detailModal.removeAttribute('aria-hidden');
+      console.log('Modal aria-hidden removed');
+    }, 100);
+    
+    // Add event listeners for proper modal management
+    elements.detailModal.addEventListener('shown.bs.modal', function() {
+      console.log('Modal shown event fired');
+      elements.detailModal.removeAttribute('aria-hidden');
+    });
+    
+    elements.detailModal.addEventListener('hidden.bs.modal', function() {
+      console.log('Modal hidden event fired');
+      elements.detailModal.setAttribute('aria-hidden', 'true');
+    });
     
     // Setup the remove listing button event listener with a small delay
     setTimeout(() => {
