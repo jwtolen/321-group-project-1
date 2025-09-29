@@ -547,6 +547,7 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('editCondition').value = listing.condition;
           document.getElementById('editSellerName').value = listing.sellerName || '';
           document.getElementById('editContact').value = listing.sellerContact;
+          document.getElementById('editUniversity').value = listing.sellerUniversity || '';
           document.getElementById('editDescription').value = listing.description;
           
           // Populate existing images
@@ -673,6 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
       condition: document.getElementById('editCondition').value,
       sellerName: document.getElementById('editSellerName').value.trim(),
       sellerContact: document.getElementById('editContact').value.trim(),
+      sellerUniversity: document.getElementById('editUniversity').value.trim(),
       description: document.getElementById('editDescription').value.trim(),
       itemPhoto: itemPhoto,
       sellerPhoto: sellerPhoto,
