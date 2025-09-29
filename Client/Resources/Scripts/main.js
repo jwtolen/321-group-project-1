@@ -478,6 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function openDetail(id) {
     currentDetailId = id;
     window.currentDetailId = id;
+    console.log('Set currentDetailId to:', id);
     const listings = await readListings();
     const l = listings.find(x => x.id === id);
     if (!l) return;
