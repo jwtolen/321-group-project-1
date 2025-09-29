@@ -1,3 +1,37 @@
+// Global function for remove listing - defined at top level
+window.handleRemoveListing = async function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  console.log('Remove my listing button clicked!');
+  
+  const passwordInput = document.getElementById('detailPasswordInput');
+  const password = passwordInput ? passwordInput.value.trim() : '';
+  
+  console.log('Password value:', password);
+  console.log('Current detail ID:', window.currentDetailId);
+  
+  if (!password) {
+    window.showToast('Please enter your listing password', 'warning');
+    return;
+  }
+  
+  if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
+    console.log('Proceeding with deletion...');
+    const success = await window.deleteListing(window.currentDetailId, password);
+    console.log('Delete result:', success);
+    
+    if (success) {
+      window.showToast('Your listing has been removed', 'success');
+      if (passwordInput) passwordInput.value = '';
+      const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
+      if (modal) modal.hide();
+      await window.loadListings();
+    } else {
+      window.showToast('Invalid password or failed to remove listing', 'danger');
+    }
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   // API Configuration
   const API_CONFIG = {
@@ -90,6 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentEditId = null;
   let currentAction = null; // 'edit' or 'delete'
   let currentListingId = null;
+  
+  // Make variables and functions globally accessible
+  window.currentDetailId = currentDetailId;
+  window.showToast = showToast;
+  window.deleteListing = deleteListing;
+  window.loadListings = loadListings;
 
   // Data Management
   window.handleOnLoad = async function() {
@@ -437,6 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Detail Modal
   async function openDetail(id) {
     currentDetailId = id;
+    window.currentDetailId = id;
     const listings = await readListings();
     const l = listings.find(x => x.id === id);
     if (!l) return;
@@ -687,37 +728,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  window.handleRemoveListing = async function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Remove my listing button clicked!');
-    
-    const passwordInput = document.getElementById('detailPasswordInput');
-    const password = passwordInput ? passwordInput.value.trim() : '';
-    
-    console.log('Password value:', password);
-    console.log('Current detail ID:', currentDetailId);
-    
-    if (!password) {
-      showToast('Please enter your listing password', 'warning');
-      return;
-    }
-    
-    if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
-      console.log('Proceeding with deletion...');
-      const success = await deleteListing(currentDetailId, password);
-      console.log('Delete result:', success);
-      
-      if (success) {
-        showToast('Your listing has been removed', 'success');
-        if (passwordInput) passwordInput.value = '';
-        bootstrap.Modal.getInstance(elements.detailModal)?.hide();
-        await loadListings();
-      } else {
-        showToast('Invalid password or failed to remove listing', 'danger');
-      }
-    }
-  }
   
   // Setup the button when DOM is ready
   if (document.readyState === 'loading') {
