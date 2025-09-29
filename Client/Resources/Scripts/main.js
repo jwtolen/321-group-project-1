@@ -1,58 +1,7 @@
 // Test to make sure JavaScript is running
 console.log('=== JAVASCRIPT IS LOADING ===');
 
-// Global function for remove listing - defined at top level
-window.handleRemoveListing = async function(e) {
-  console.log('=== HANDLE REMOVE LISTING CALLED ===');
-  
-  if (e) {
-  e.preventDefault();
-  e.stopPropagation();
-  }
-  
-  console.log('Remove my listing button clicked!');
-  
-  const passwordInput = document.getElementById('detailPasswordInput');
-  const password = passwordInput ? passwordInput.value.trim() : '';
-  
-  console.log('Password value:', password);
-  console.log('Current detail ID:', window.currentDetailId);
-  
-  if (!password) {
-    alert('Please enter your listing password');
-    return;
-  }
-  
-  if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
-    console.log('Proceeding with deletion...');
-    
-    try {
-      const response = await fetch(`${window.location.origin}/api/ItemListing/${window.currentDetailId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ Password: password })
-      });
-      
-      if (response.ok) {
-        alert('Your listing has been removed');
-      if (passwordInput) passwordInput.value = '';
-      const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
-      if (modal) modal.hide();
-        location.reload();
-    } else {
-        alert('Invalid password or failed to remove listing');
-      }
-    } catch (error) {
-      console.error('Error deleting listing:', error);
-      alert('Error removing listing');
-    }
-  }
-};
-
-// Make sure the function is available immediately
-console.log('handleRemoveListing function defined:', typeof window.handleRemoveListing);
+// Global function for remove listing - now handled in detail modal
 
 // Add the missing handleOnLoad function
 window.handleOnLoad = async function() {
@@ -115,10 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Detail modal
     detailModal: document.getElementById('detailModal'),
     
-    // Password prompt modal
-    passwordPromptModal: document.getElementById('passwordPromptModal'),
-    passwordPromptInput: document.getElementById('passwordPromptInput'),
-    passwordPromptSubmit: document.getElementById('passwordPromptSubmit'),
     
     // Detail modal self-deletion
     detailPasswordInput: document.getElementById('detailPasswordInput'),
@@ -153,8 +98,6 @@ document.addEventListener('DOMContentLoaded', function() {
   let isAdminLoggedIn = false;
   let currentDetailId = null;
   let currentEditId = null;
-  let currentAction = null; // 'edit' or 'delete'
-  let currentListingId = null;
   
   // Basic function to load listings
   async function readListings() {
@@ -238,14 +181,6 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <div class="text-success fw-semibold">${formatPrice(listing.price)}</div>
           <div class="text-secondary small">${listing.condition}</div>
-          <div class="mt-2 d-flex gap-1">
-            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); showPasswordPrompt('edit', ${listing.id})">
-              <i class="bi bi-pencil"></i> Edit
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showPasswordPrompt('delete', ${listing.id})">
-              <i class="bi bi-trash"></i> Delete
-            </button>
-          </div>
         </div>
       </div>
     `;
@@ -492,13 +427,133 @@ document.addEventListener('DOMContentLoaded', function() {
   // Make functions globally accessible
   window.showToast = showToast;
   window.applyFilters = applyFilters;
-  window.showPasswordPrompt = function(action, listingId) {
-    currentAction = action;
-    currentListingId = listingId;
-    elements.passwordPromptInput.value = '';
-    const modal = bootstrap.Modal.getOrCreateInstance(elements.passwordPromptModal);
-    modal.show();
-  };
+
+  // Handle edit listing button in detail modal
+  document.getElementById('editListingBtn').addEventListener('click', async () => {
+    const password = document.getElementById('detailPasswordInput').value.trim();
+    
+    if (!password) {
+      showToast('Please enter your listing password', 'warning');
+      return;
+    }
+    
+    try {
+      // Verify password first
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listingById(currentDetailId)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ Password: password, Action: 'verify' })
+      });
+      
+      if (response.ok) {
+        // Get listing data and populate edit form
+        const listings = await readListings();
+        const listing = listings.find(l => l.id === currentDetailId);
+        
+        if (listing) {
+          // Populate edit form
+          document.getElementById('editTitle').value = listing.title;
+          document.getElementById('editPrice').value = listing.price;
+          document.getElementById('editCategory').value = listing.category;
+          document.getElementById('editCondition').value = listing.condition;
+          document.getElementById('editSellerName').value = listing.sellerName;
+          document.getElementById('editContact').value = listing.sellerContact;
+          document.getElementById('editDescription').value = listing.description;
+          
+          // Store current edit ID and password
+          currentEditId = currentDetailId;
+          window.currentEditPassword = password;
+          
+          // Close detail modal and open edit modal
+          bootstrap.Modal.getInstance(elements.detailModal)?.hide();
+          const editModal = bootstrap.Modal.getOrCreateInstance(elements.editListingModal);
+          editModal.show();
+        }
+      } else {
+        showToast('Invalid password', 'danger');
+      }
+    } catch (error) {
+      console.error('Error verifying password:', error);
+      showToast('An error occurred. Please try again.', 'danger');
+    }
+  });
+
+  // Handle delete listing button in detail modal
+  document.getElementById('removeMyListingBtn').addEventListener('click', async () => {
+    const password = document.getElementById('detailPasswordInput').value.trim();
+    
+    if (!password) {
+      showToast('Please enter your listing password', 'warning');
+      return;
+    }
+    
+    if (confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+      try {
+        const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listingById(currentDetailId)}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ Password: password })
+        });
+        
+        if (response.ok) {
+          showToast('Listing deleted successfully', 'success');
+          bootstrap.Modal.getInstance(elements.detailModal)?.hide();
+          await applyFilters(); // Refresh the listings
+        } else {
+          showToast('Invalid password or failed to delete listing', 'danger');
+        }
+      } catch (error) {
+        console.error('Error deleting listing:', error);
+        showToast('An error occurred. Please try again.', 'danger');
+      }
+    }
+  });
+
+  // Handle save edit button
+  elements.saveEditBtn.addEventListener('click', async () => {
+    if (!currentEditId || !window.currentEditPassword) {
+      showToast('No listing selected for editing', 'danger');
+      return;
+    }
+    
+    const editData = {
+      title: document.getElementById('editTitle').value.trim(),
+      price: document.getElementById('editPrice').value,
+      category: document.getElementById('editCategory').value,
+      condition: document.getElementById('editCondition').value,
+      sellerName: document.getElementById('editSellerName').value.trim(),
+      sellerContact: document.getElementById('editContact').value.trim(),
+      description: document.getElementById('editDescription').value.trim(),
+      password: window.currentEditPassword
+    };
+    
+    try {
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listingById(currentEditId)}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editData)
+      });
+      
+      if (response.ok) {
+        showToast('Listing updated successfully', 'success');
+        bootstrap.Modal.getInstance(elements.editListingModal)?.hide();
+        await applyFilters(); // Refresh the listings
+        currentEditId = null;
+        window.currentEditPassword = null;
+      } else {
+        showToast('Failed to update listing', 'danger');
+      }
+    } catch (error) {
+      console.error('Error updating listing:', error);
+      showToast('An error occurred. Please try again.', 'danger');
+    }
+  });
 
   // Event Listeners
   // Search and filters

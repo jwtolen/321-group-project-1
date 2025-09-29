@@ -308,22 +308,34 @@
             </div>
             <div class="text-secondary"><i class="bi bi-person-lines-fill me-1"></i><span id="detailContact"></span></div>
             
-            <!-- User self-deletion section -->
+            <!-- User management section -->
             <div class="mt-4 pt-3 border-top">
               <h6 class="text-muted mb-3">
                 <i class="bi bi-shield-lock me-2"></i>Manage Your Listing
               </h6>
-              <div class="row g-2">
+              <div class="row g-2 mb-3">
                 <div class="col-md-8">
-                  <input type="password" class="form-control form-control-sm" id="detailPasswordInput" placeholder="Enter your listing password to remove it">
+                  <input type="password" class="form-control form-control-sm" id="detailPasswordInput" placeholder="Enter your listing password">
                 </div>
                 <div class="col-md-4">
-                  <button type="button" class="btn btn-outline-danger btn-sm w-100" id="removeMyListingBtn" onclick="console.log('Button clicked via onclick!'); console.log('testFunction available:', typeof window.testFunction); console.log('handleRemoveListing available:', typeof window.handleRemoveListing); if (typeof window.handleRemoveListing === 'function') { window.handleRemoveListing(event); } else { console.error('Function not available!'); }">
-                    <i class="bi bi-trash me-1"></i>Remove My Listing
+                  <button type="button" class="btn btn-outline-primary btn-sm w-100" id="editListingBtn">
+                    <i class="bi bi-pencil me-1"></i>Edit Listing
                   </button>
                 </div>
               </div>
-              <small class="text-muted">Enter the password you set when creating this listing to remove it.</small>
+              <div class="row g-2">
+                <div class="col-md-8">
+                  <button type="button" class="btn btn-outline-danger btn-sm w-100" id="removeMyListingBtn">
+                    <i class="bi bi-trash me-1"></i>Delete Listing
+                  </button>
+                </div>
+                <div class="col-md-4">
+                  <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="viewDetailsBtn">
+                    <i class="bi bi-eye me-1"></i>View Details
+                  </button>
+                </div>
+              </div>
+              <small class="text-muted">Enter the password you set when creating this listing to edit or delete it.</small>
             </div>
           </div>
           <div class="modal-footer">
@@ -448,33 +460,6 @@
       </div>
     </div>
 
-    <!-- Password Prompt Modal -->
-    <div class="modal fade" id="passwordPromptModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="bi bi-shield-lock me-2"></i>Verify Password
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p>Enter the password for this listing to continue:</p>
-            <div class="mb-3">
-              <label for="passwordPromptInput" class="form-label">Password</label>
-              <input type="password" class="form-control" id="passwordPromptInput" placeholder="Enter listing password" required>
-              <div class="invalid-feedback">Password is required.</div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-primary" id="passwordPromptSubmit">
-              <i class="bi bi-check-lg me-1"></i>Verify
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Admin Page (Hidden by default) -->
     <div id="adminPage" class="d-none">
