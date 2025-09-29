@@ -516,6 +516,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear password input
     elements.detailPasswordInput.value = '';
     
+    // Store the ID in the modal as a data attribute
+    elements.detailModal.setAttribute('data-listing-id', id);
+    
     const modal = bootstrap.Modal.getOrCreateInstance(elements.detailModal);
     modal.show();
   }

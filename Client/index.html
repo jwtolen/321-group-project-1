@@ -320,15 +320,25 @@
                 <div class="col-md-4">
                   <button type="button" class="btn btn-outline-danger btn-sm w-100" id="removeMyListingBtn" onclick="
                     console.log('Button clicked!');
+                    console.log('window.currentDetailId:', window.currentDetailId);
+                    const modal = document.getElementById('detailModal');
+                    const modalId = modal ? modal.getAttribute('data-listing-id') : null;
+                    console.log('Modal data-listing-id:', modalId);
+                    const listingId = window.currentDetailId || modalId;
+                    console.log('Using listing ID:', listingId);
                     const password = document.getElementById('detailPasswordInput').value.trim();
                     console.log('Password:', password);
                     if (!password) {
                       alert('Please enter your listing password');
                       return;
                     }
+                    if (!listingId) {
+                      alert('Error: No listing ID found. Please close and reopen the modal.');
+                      return;
+                    }
                     if (confirm('Are you sure you want to remove your listing?')) {
                       console.log('Proceeding with deletion...');
-                      fetch(window.location.origin + '/api/ItemListing/' + window.currentDetailId, {
+                      fetch(window.location.origin + '/api/ItemListing/' + listingId, {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ Password: password })
