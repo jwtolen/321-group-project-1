@@ -534,15 +534,32 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.show();
     console.log('Modal shown');
     
-    // Setup the remove listing button event listener
-    const removeBtn = document.getElementById('removeMyListingBtn');
-    if (removeBtn) {
-      // Remove any existing listeners
-      removeBtn.removeEventListener('click', window.handleRemoveListing);
-      // Add new listener
-      removeBtn.addEventListener('click', window.handleRemoveListing);
-      console.log('Remove listing button event listener attached in openDetail');
-    }
+    // Setup the remove listing button event listener with a small delay
+    setTimeout(() => {
+      const removeBtn = document.getElementById('removeMyListingBtn');
+      console.log('Looking for remove button (with delay):', removeBtn);
+      if (removeBtn) {
+        // Remove any existing listeners
+        removeBtn.removeEventListener('click', window.handleRemoveListing);
+        // Add new listener
+        removeBtn.addEventListener('click', window.handleRemoveListing);
+        
+        // Also add a simple test listener
+        removeBtn.addEventListener('click', function(e) {
+          console.log('SIMPLE CLICK TEST - Button was clicked!');
+          console.log('Event:', e);
+        });
+        
+        console.log('Remove listing button event listener attached in openDetail');
+        console.log('Button element:', removeBtn);
+        console.log('Button onclick:', removeBtn.onclick);
+        console.log('Button disabled:', removeBtn.disabled);
+        console.log('Button style:', removeBtn.style.display);
+        console.log('Button parent:', removeBtn.parentElement);
+      } else {
+        console.log('Remove button not found in openDetail (with delay)');
+      }
+    }, 100);
   }
 
   // Admin Functions
@@ -923,4 +940,14 @@ document.addEventListener('DOMContentLoaded', () => {
   populateUniversityOptions();
   applyFilters();
   setupUniversityDropdown();
+  
+  // Use event delegation for the remove button
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'removeMyListingBtn') {
+      console.log('Remove button clicked via event delegation!');
+      e.preventDefault();
+      e.stopPropagation();
+      window.handleRemoveListing(e);
+    }
+  });
 });
