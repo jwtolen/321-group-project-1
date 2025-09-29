@@ -3,6 +3,8 @@ window.handleRemoveListing = async function(e) {
   e.preventDefault();
   e.stopPropagation();
   console.log('Remove my listing button clicked!');
+  console.log('Event:', e);
+  console.log('Target:', e.target);
   
   const passwordInput = document.getElementById('detailPasswordInput');
   const password = passwordInput ? passwordInput.value.trim() : '';
@@ -531,6 +533,16 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('About to show modal');
     modal.show();
     console.log('Modal shown');
+    
+    // Setup the remove listing button event listener
+    const removeBtn = document.getElementById('removeMyListingBtn');
+    if (removeBtn) {
+      // Remove any existing listeners
+      removeBtn.removeEventListener('click', window.handleRemoveListing);
+      // Add new listener
+      removeBtn.addEventListener('click', window.handleRemoveListing);
+      console.log('Remove listing button event listener attached in openDetail');
+    }
   }
 
   // Admin Functions
@@ -731,9 +743,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeBtn = document.getElementById('removeMyListingBtn');
     if (removeBtn) {
       // Remove any existing listeners
-      removeBtn.removeEventListener('click', handleRemoveListing);
+      removeBtn.removeEventListener('click', window.handleRemoveListing);
       // Add new listener
-      removeBtn.addEventListener('click', handleRemoveListing);
+      removeBtn.addEventListener('click', window.handleRemoveListing);
       console.log('Remove listing button event listener attached');
     } else {
       console.log('Remove listing button not found, will retry...');
