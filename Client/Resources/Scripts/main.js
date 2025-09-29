@@ -671,10 +671,18 @@ document.addEventListener('DOMContentLoaded', () => {
     await handlePasswordVerification();
   });
 
-  // Remove my listing button
-  if (elements.removeMyListingBtn) {
-    elements.removeMyListingBtn.addEventListener('click', async () => {
-      const password = elements.detailPasswordInput.value.trim();
+  // Remove my listing button - use event delegation
+  document.addEventListener('click', async (e) => {
+    if (e.target && e.target.id === 'removeMyListingBtn') {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Remove my listing button clicked!');
+      
+      const passwordInput = document.getElementById('detailPasswordInput');
+      const password = passwordInput ? passwordInput.value.trim() : '';
+      
+      console.log('Password value:', password);
+      console.log('Current detail ID:', currentDetailId);
       
       if (!password) {
         showToast('Please enter your listing password', 'warning');
@@ -682,21 +690,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
+        console.log('Proceeding with deletion...');
         const success = await deleteListing(currentDetailId, password);
+        console.log('Delete result:', success);
         
         if (success) {
           showToast('Your listing has been removed', 'success');
-          elements.detailPasswordInput.value = '';
+          if (passwordInput) passwordInput.value = '';
           bootstrap.Modal.getInstance(elements.detailModal)?.hide();
           await loadListings();
         } else {
           showToast('Invalid password or failed to remove listing', 'danger');
         }
       }
-    });
-  } else {
-    console.error('removeMyListingBtn element not found');
-  }
+    }
+  });
 
   // Edit listing
   elements.saveEditBtn.addEventListener('click', async () => {
