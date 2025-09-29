@@ -1,5 +1,11 @@
 // Test to make sure JavaScript is running
 console.log('=== JAVASCRIPT IS LOADING ===');
+alert('JavaScript is loading!');
+
+// Simple test function first
+window.testFunction = function() {
+  console.log('Test function works!');
+};
 
 // Global function for remove listing - defined at top level
 window.handleRemoveListing = async function(e) {
