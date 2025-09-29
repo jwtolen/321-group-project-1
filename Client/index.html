@@ -24,9 +24,12 @@
         <!-- Desktop Layout -->
         <div class="d-none d-lg-flex align-items-center w-100">
           <!-- Search Button (Left) -->
-          <button class="btn btn-outline-secondary me-3" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-controls="filtersCollapse" aria-expanded="false" aria-label="Toggle filters">
-            <i class="bi bi-funnel me-1"></i><span class="btn-text">Search Listings</span>
-          </button>
+          <div class="d-flex flex-column align-items-center me-3">
+            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-controls="filtersCollapse" aria-expanded="false" aria-label="Toggle filters">
+              <i class="bi bi-funnel me-1"></i><span class="btn-text">Search Listings</span>
+            </button>
+            <small class="text-muted mt-1">Filter your search</small>
+          </div>
           
           <!-- Centered Title -->
           <div class="flex-grow-1 text-center">
@@ -36,20 +39,26 @@
           </div>
           
           <!-- Post Button -->
-          <button id="postBtn" class="btn btn-primary me-3" type="button" data-bs-toggle="modal" data-bs-target="#postOffcanvas" aria-controls="postOffcanvas">
-            <i class="bi bi-plus-lg me-1"></i><span class="btn-text">Post listing</span>
-          </button>
+          <div class="d-flex flex-column align-items-center me-3">
+            <button id="postBtn" class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#postOffcanvas" aria-controls="postOffcanvas">
+              <i class="bi bi-plus-lg me-1"></i><span class="btn-text">Post listing</span>
+            </button>
+            <small class="text-muted mt-1">Sell an Item</small>
+          </div>
           
           <!-- Admin Menu (Right) -->
-          <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="adminDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-gear me-1"></i><span class="btn-text">Admin</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#" id="adminLoginBtn">
-                <i class="bi bi-person-lock me-2"></i>Admin Login
-              </a></li>
-            </ul>
+          <div class="d-flex flex-column align-items-center">
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="adminDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-gear me-1"></i><span class="btn-text">Admin</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" id="adminLoginBtn">
+                  <i class="bi bi-person-lock me-2"></i>Admin Login
+                </a></li>
+              </ul>
+            </div>
+            <small class="text-muted mt-1">Admin ONLY</small>
           </div>
         </div>
         
@@ -61,21 +70,30 @@
           </a>
           
           <!-- Button Row -->
-          <div class="d-flex gap-2 justify-content-center">
+          <div class="d-flex gap-3 justify-content-center">
             <!-- Search Button -->
-            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-controls="filtersCollapse" aria-expanded="false" aria-label="Toggle filters">
-              <i class="bi bi-funnel me-1"></i><span class="btn-text">Search</span>
-            </button>
+            <div class="d-flex flex-column align-items-center">
+              <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-controls="filtersCollapse" aria-expanded="false" aria-label="Toggle filters">
+                <i class="bi bi-funnel me-1"></i><span class="btn-text">Search</span>
+              </button>
+              <small class="text-muted mt-1" style="font-size: 0.7rem;">Filter your search</small>
+            </div>
             
             <!-- Post Button -->
-            <button id="postBtnMobile" class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#postOffcanvas" aria-controls="postOffcanvas">
-              <i class="bi bi-plus-lg me-1"></i><span class="btn-text">Post</span>
-            </button>
+            <div class="d-flex flex-column align-items-center">
+              <button id="postBtnMobile" class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#postOffcanvas" aria-controls="postOffcanvas">
+                <i class="bi bi-plus-lg me-1"></i><span class="btn-text">Post</span>
+              </button>
+              <small class="text-muted mt-1" style="font-size: 0.7rem;">Sell an Item</small>
+            </div>
             
             <!-- Admin Button -->
-            <button class="btn btn-outline-secondary" type="button" id="adminLoginBtnMobile">
-              <i class="bi bi-person-lock me-1"></i><span class="btn-text">Admin</span>
-            </button>
+            <div class="d-flex flex-column align-items-center">
+              <button class="btn btn-outline-secondary" type="button" id="adminLoginBtnMobile">
+                <i class="bi bi-person-lock me-1"></i><span class="btn-text">Admin</span>
+              </button>
+              <small class="text-muted mt-1" style="font-size: 0.7rem;">Admin ONLY</small>
+            </div>
           </div>
         </div>
       </div>
