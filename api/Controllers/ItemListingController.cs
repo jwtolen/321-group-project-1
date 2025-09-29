@@ -116,6 +116,31 @@ namespace api.Controllers
             return Ok(new { message = "Password verified" });
         }
 
+        // DELETE api/<ItemListingController>/admin/{id}
+        [HttpDelete("admin/{id}")]
+        public IActionResult AdminDelete(int id)
+        {
+            Database database = new Database();
+            database.InitializeDatabase();
+            database.DeleteListing(id);
+            return NoContent();
+        }
+
+        // PUT api/<ItemListingController>/admin/{id}
+        [HttpPut("admin/{id}")]
+        public IActionResult AdminUpdate(int id, [FromBody] ItemListing listing)
+        {
+            if (id != listing.Id)
+            {
+                return BadRequest();
+            }
+
+            Database database = new Database();
+            database.InitializeDatabase();
+            database.UpdateListing(listing);
+            return NoContent();
+        }
+
         // POST api/<ItemListingController>/reseed
         [HttpPost("reseed")]
         public IActionResult Reseed()

@@ -307,6 +307,24 @@
               </div>
             </div>
             <div class="text-secondary"><i class="bi bi-person-lines-fill me-1"></i><span id="detailContact"></span></div>
+            
+            <!-- User self-deletion section -->
+            <div class="mt-4 pt-3 border-top">
+              <h6 class="text-muted mb-3">
+                <i class="bi bi-shield-lock me-2"></i>Manage Your Listing
+              </h6>
+              <div class="row g-2">
+                <div class="col-md-8">
+                  <input type="password" class="form-control form-control-sm" id="detailPasswordInput" placeholder="Enter your listing password to remove it">
+                </div>
+                <div class="col-md-4">
+                  <button type="button" class="btn btn-outline-danger btn-sm w-100" id="removeMyListingBtn">
+                    <i class="bi bi-trash me-1"></i>Remove My Listing
+                  </button>
+                </div>
+              </div>
+              <small class="text-muted">Enter the password you set when creating this listing to remove it.</small>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -524,6 +542,7 @@
                         <th>Seller</th>
                         <th>Contact</th>
                         <th>Actions</th>
+                        <th>Password</th>
                       </tr>
                     </thead>
                     <tbody id="adminListingsTable">

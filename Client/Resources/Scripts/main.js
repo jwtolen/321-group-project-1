@@ -54,6 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
     passwordPromptModal: document.getElementById('passwordPromptModal'),
     passwordPromptInput: document.getElementById('passwordPromptInput'),
     passwordPromptSubmit: document.getElementById('passwordPromptSubmit'),
+    
+    // Detail modal self-deletion
+    detailPasswordInput: document.getElementById('detailPasswordInput'),
+    removeMyListingBtn: document.getElementById('removeMyListingBtn'),
     detailTitle: document.getElementById('detailTitle'),
     detailImage: document.getElementById('detailImage'),
     detailCategory: document.getElementById('detailCategory'),
@@ -466,6 +470,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     elements.detailContact.textContent = l.sellerContact;
     
+    // Clear password input
+    elements.detailPasswordInput.value = '';
+    
     const modal = bootstrap.Modal.getOrCreateInstance(elements.detailModal);
     modal.show();
   }
@@ -513,6 +520,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
           </div>
         </td>
+        <td>
+          <small class="text-muted">${listing.postPassword || 'No password'}</small>
+        </td>
       `;
       tableBody.appendChild(row);
     });
@@ -543,16 +553,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.deleteAdminListing = async function(id) {
     if (confirm('Are you sure you want to delete this listing?')) {
-      const success = await deleteListing(parseInt(id));
-      if (success) {
-        await loadAdminData();
-        showToast('Listing deleted', 'danger');
-        await applyFilters();
-      } else {
+      try {
+        const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listings}/admin/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          await loadAdminData();
+          showToast('Listing deleted', 'danger');
+          await applyFilters();
+        } else {
+          showToast('Failed to delete listing', 'danger');
+        }
+      } catch (error) {
+        console.error('Error deleting listing:', error);
         showToast('Failed to delete listing', 'danger');
       }
     }
   };
+
+  // Admin update function that bypasses password
+  async function updateAdminListing(listing) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listings}/admin/${listing.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(listing)
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return true;
+    } catch (err) {
+      console.error('Failed to update listing', err);
+      return false;
+    }
+  }
 
   // Toast notifications
   function showToast(message, type = 'primary') {
@@ -634,6 +670,27 @@ document.addEventListener('DOMContentLoaded', () => {
     await handlePasswordVerification();
   });
 
+  // Remove my listing button
+  elements.removeMyListingBtn.addEventListener('click', async () => {
+    const password = elements.detailPasswordInput.value.trim();
+    if (!password) {
+      showToast('Please enter your listing password', 'warning');
+      return;
+    }
+    
+    if (confirm('Are you sure you want to remove your listing? This action cannot be undone.')) {
+      const success = await deleteListing(currentDetailId, password);
+      if (success) {
+        showToast('Your listing has been removed', 'success');
+        elements.detailPasswordInput.value = '';
+        bootstrap.Modal.getInstance(elements.detailModal)?.hide();
+        await loadListings();
+      } else {
+        showToast('Invalid password or failed to remove listing', 'danger');
+      }
+    }
+  });
+
   // Edit listing
   elements.saveEditBtn.addEventListener('click', async () => {
     if (!currentEditId) return;
@@ -667,7 +724,11 @@ document.addEventListener('DOMContentLoaded', () => {
       postPassword: originalListing?.postPassword || '' // Preserve existing password
     };
     
-    const success = await updateListing(updatedListing);
+    // Use admin update function if in admin mode, otherwise use regular update
+    const success = isAdminLoggedIn ? 
+      await updateAdminListing(updatedListing) : 
+      await updateListing(updatedListing);
+      
     if (success) {
       await loadAdminData();
       bootstrap.Modal.getInstance(elements.editListingModal)?.hide();
