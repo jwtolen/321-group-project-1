@@ -26,6 +26,9 @@ namespace api.Models
         [JsonProperty("sellerContact")]
         public string? SellerContact { get; set; }
         
+        [JsonProperty("sellerName")]
+        public string? SellerName { get; set; }
+        
         [JsonProperty("description")]
         public string? Description { get; set; }
         

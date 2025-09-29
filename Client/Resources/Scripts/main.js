@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
     descriptionInput: document.getElementById('descriptionInput'),
     imageInput: document.getElementById('imageInput'),
     imagePreview: document.getElementById('imagePreview'),
+    sellerNameInput: document.getElementById('sellerNameInput'),
     sellerUniversityInput: document.getElementById('sellerUniversityInput'),
     sellerAvatarInput: document.getElementById('sellerAvatarInput'),
     sellerAvatarPreview: document.getElementById('sellerAvatarPreview'),
@@ -276,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (detailContact) detailContact.textContent = listing.sellerContact;
     
     // Handle seller information
-    if (detailSellerName) detailSellerName.textContent = 'Seller';
+    if (detailSellerName) detailSellerName.textContent = listing.sellerName || 'Unknown Seller';
     if (detailSellerMeta) detailSellerMeta.textContent = listing.sellerUniversity || 'Unknown University';
     
     // Handle seller avatar
@@ -468,6 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <td>${listing.title}</td>
           <td>$${Number(listing.price).toFixed(2)}</td>
           <td>${listing.category}</td>
+          <td>${listing.sellerName || 'Unknown'}</td>
           <td>${listing.sellerContact}</td>
           <td>
             <button class="btn btn-sm btn-outline-danger" onclick="adminDeleteListing(${listing.id})">
@@ -543,6 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('editPrice').value = listing.price;
           document.getElementById('editCategory').value = listing.category;
           document.getElementById('editCondition').value = listing.condition;
+          document.getElementById('editSellerName').value = listing.sellerName || '';
           document.getElementById('editContact').value = listing.sellerContact;
           document.getElementById('editDescription').value = listing.description;
           
@@ -668,6 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
       price: document.getElementById('editPrice').value,
       category: document.getElementById('editCategory').value,
       condition: document.getElementById('editCondition').value,
+      sellerName: document.getElementById('editSellerName').value.trim(),
       sellerContact: document.getElementById('editContact').value.trim(),
       description: document.getElementById('editDescription').value.trim(),
       itemPhoto: itemPhoto,
@@ -807,6 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
       category: elements.categoryInput.value,
       condition: elements.conditionInput.value,
       sellerContact: elements.contactInput.value.trim(),
+      sellerName: elements.sellerNameInput.value.trim(),
       description: elements.descriptionInput.value.trim(),
       itemPhoto: image,
       sellerPhoto: avatar,
