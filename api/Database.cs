@@ -29,7 +29,8 @@ namespace api.Models
                 Description TEXT NOT NULL,
                 ItemPhoto TEXT,
                 SellerPhoto TEXT,
-                SellerUniversity TEXT
+                SellerUniversity TEXT,
+                PostPassword TEXT
             )";
             
             using var cmd = new SqliteCommand(createTable, con);
@@ -57,7 +58,8 @@ namespace api.Models
                     Description = rdr.GetString(6),
                     ItemPhoto = rdr.IsDBNull(7) ? "" : rdr.GetString(7),
                     SellerPhoto = rdr.IsDBNull(8) ? "" : rdr.GetString(8),
-                    SellerUniversity = rdr.IsDBNull(9) ? "" : rdr.GetString(9)
+                    SellerUniversity = rdr.IsDBNull(9) ? "" : rdr.GetString(9),
+                    PostPassword = rdr.IsDBNull(10) ? "" : rdr.GetString(10)
                 });
             }
             return listings;
@@ -79,7 +81,8 @@ namespace api.Models
                           SET Title = @Title, Price = @Price, Category = @Category, 
                               Condition = @Condition, SellerContact = @SellerContact, 
                               Description = @Description, ItemPhoto = @ItemPhoto, 
-                              SellerPhoto = @SellerPhoto, SellerUniversity = @SellerUniversity 
+                              SellerPhoto = @SellerPhoto, SellerUniversity = @SellerUniversity,
+                              PostPassword = @PostPassword 
                           WHERE Id = @Id";
             
             using var con = new SqliteConnection(cs);
@@ -95,14 +98,15 @@ namespace api.Models
             cmd.Parameters.AddWithValue("@ItemPhoto", listing.ItemPhoto ?? "");
             cmd.Parameters.AddWithValue("@SellerPhoto", listing.SellerPhoto ?? "");
             cmd.Parameters.AddWithValue("@SellerUniversity", listing.SellerUniversity ?? "");
+            cmd.Parameters.AddWithValue("@PostPassword", listing.PostPassword ?? "");
             
             cmd.ExecuteNonQuery();
         }
 
         public void AddListing(ItemListing listing)
         {
-            string stm = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, Description, ItemPhoto, SellerPhoto, SellerUniversity) 
-                          VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity)";
+            string stm = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, Description, ItemPhoto, SellerPhoto, SellerUniversity, PostPassword) 
+                          VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity, @PostPassword)";
             
             using var con = new SqliteConnection(cs);
             con.Open();
@@ -117,6 +121,7 @@ namespace api.Models
             cmd.Parameters.AddWithValue("@ItemPhoto", listing.ItemPhoto ?? "");
             cmd.Parameters.AddWithValue("@SellerPhoto", listing.SellerPhoto ?? "");
             cmd.Parameters.AddWithValue("@SellerUniversity", listing.SellerUniversity ?? "");
+            cmd.Parameters.AddWithValue("@PostPassword", listing.PostPassword ?? "");
             
             cmd.ExecuteNonQuery();
         }
@@ -166,8 +171,8 @@ namespace api.Models
                 {
                     try
                     {
-                        string insertSql = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, Description, ItemPhoto, SellerPhoto, SellerUniversity) 
-                                           VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity)";
+                        string insertSql = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, Description, ItemPhoto, SellerPhoto, SellerUniversity, PostPassword) 
+                                           VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity, @PostPassword)";
                         
                         using var cmd = new SqliteCommand(insertSql, con);
                         cmd.Parameters.AddWithValue("@Id", listing.Id);
@@ -180,6 +185,7 @@ namespace api.Models
                         cmd.Parameters.AddWithValue("@ItemPhoto", listing.ItemPhoto ?? "");
                         cmd.Parameters.AddWithValue("@SellerPhoto", listing.SellerPhoto ?? "");
                         cmd.Parameters.AddWithValue("@SellerUniversity", listing.SellerUniversity ?? "");
+                        cmd.Parameters.AddWithValue("@PostPassword", listing.PostPassword ?? "");
                         
                         cmd.ExecuteNonQuery();
                         insertedCount++;

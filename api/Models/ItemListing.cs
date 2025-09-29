@@ -37,6 +37,9 @@ namespace api.Models
         
         [JsonProperty("sellerUniversity")]
         public string? SellerUniversity { get; set; }
+        
+        [JsonProperty("postPassword")]
+        public string? PostPassword { get; set; }
     }
 
 }

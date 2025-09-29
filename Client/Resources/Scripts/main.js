@@ -45,9 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
     sellerUniversityInput: document.getElementById('sellerUniversityInput'),
     sellerAvatarInput: document.getElementById('sellerAvatarInput'),
     sellerAvatarPreview: document.getElementById('sellerAvatarPreview'),
+    postPasswordInput: document.getElementById('postPasswordInput'),
     
     // Detail modal
     detailModal: document.getElementById('detailModal'),
+    
+    // Password prompt modal
+    passwordPromptModal: document.getElementById('passwordPromptModal'),
+    passwordPromptInput: document.getElementById('passwordPromptInput'),
+    passwordPromptSubmit: document.getElementById('passwordPromptSubmit'),
     detailTitle: document.getElementById('detailTitle'),
     detailImage: document.getElementById('detailImage'),
     detailCategory: document.getElementById('detailCategory'),
@@ -78,6 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let isAdminLoggedIn = false;
   let currentDetailId = null;
   let currentEditId = null;
+  let currentAction = null; // 'edit' or 'delete'
+  let currentListingId = null;
 
   // Data Management
   window.handleOnLoad = async function() {
@@ -98,10 +106,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function deleteListing(id) {
+  async function deleteListing(id, password = null) {
     try {
       const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listingById(id)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: password ? JSON.stringify({ password: password }) : undefined
       });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return true;
@@ -113,6 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function updateListing(listing) {
     try {
+      // Add password if available
+      if (window.currentEditPassword) {
+        listing.postPassword = window.currentEditPassword;
+        window.currentEditPassword = null; // Clear after use
+      }
+      
       const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listingById(listing.id)}`, {
         method: 'PUT',
         headers: {
@@ -125,6 +143,86 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error('Failed to update listing', err);
       return false;
+    }
+  }
+
+  // Password verification functions
+  async function verifyPassword(listingId, password) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listings}/verify-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: listingId,
+          password: password
+        })
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error('Error verifying password:', error);
+      return false;
+    }
+  }
+  
+  window.showPasswordPrompt = function(action, listingId) {
+    currentAction = action;
+    currentListingId = listingId;
+    elements.passwordPromptInput.value = '';
+    const modal = bootstrap.Modal.getOrCreateInstance(elements.passwordPromptModal);
+    modal.show();
+  }
+  
+  function editListing(id) {
+    const listing = allListings.find(l => l.id === id);
+    if (!listing) return;
+    
+    // Populate edit form
+    document.getElementById('editTitle').value = listing.title || '';
+    document.getElementById('editPrice').value = listing.price || '';
+    document.getElementById('editCategory').value = listing.category || '';
+    document.getElementById('editCondition').value = listing.condition || '';
+    document.getElementById('editSellerName').value = listing.sellerContact || '';
+    document.getElementById('editContact').value = listing.sellerContact || '';
+    document.getElementById('editDescription').value = listing.description || '';
+    
+    currentEditId = id;
+    const modal = bootstrap.Modal.getOrCreateInstance(elements.editListingModal);
+    modal.show();
+  }
+  
+  async function handlePasswordVerification() {
+    const password = elements.passwordPromptInput.value.trim();
+    if (!password) {
+      elements.passwordPromptInput.classList.add('is-invalid');
+      return;
+    }
+    
+    const isValid = await verifyPassword(currentListingId, password);
+    if (!isValid) {
+      elements.passwordPromptInput.classList.add('is-invalid');
+      showToast('Invalid password', 'danger');
+      return;
+    }
+    
+    // Hide modal and proceed with action
+    const modal = bootstrap.Modal.getInstance(elements.passwordPromptModal);
+    modal.hide();
+    
+    if (currentAction === 'edit') {
+      // Store the password for the edit operation
+      window.currentEditPassword = password;
+      editListing(currentListingId);
+    } else if (currentAction === 'delete') {
+      const success = await deleteListing(currentListingId, password);
+      if (success) {
+        showToast('Listing deleted successfully', 'success');
+        await loadListings();
+      } else {
+        showToast('Failed to delete listing', 'danger');
+      }
     }
   }
 
@@ -264,6 +362,14 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="text-success fw-semibold">${formatPrice(listing.price)}</div>
           <div class="text-secondary small">${listing.condition}</div>
+          <div class="mt-2 d-flex gap-1">
+            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); showPasswordPrompt('edit', ${listing.id})">
+              <i class="bi bi-pencil"></i> Edit
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showPasswordPrompt('delete', ${listing.id})">
+              <i class="bi bi-trash"></i> Delete
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -523,6 +629,11 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Logged out successfully', 'info');
   });
 
+  // Password prompt submit
+  elements.passwordPromptSubmit.addEventListener('click', async () => {
+    await handlePasswordVerification();
+  });
+
   // Edit listing
   elements.saveEditBtn.addEventListener('click', async () => {
     if (!currentEditId) return;
@@ -552,7 +663,8 @@ document.addEventListener('DOMContentLoaded', () => {
       description: document.getElementById('editDescription').value.trim(),
       itemPhoto: originalListing?.itemPhoto || '', // Preserve existing item photo
       sellerPhoto: originalListing?.sellerPhoto || '', // Preserve existing seller photo
-      sellerUniversity: originalListing?.sellerUniversity || 'University of Alabama' // Preserve existing university
+      sellerUniversity: originalListing?.sellerUniversity || 'University of Alabama', // Preserve existing university
+      postPassword: originalListing?.postPassword || '' // Preserve existing password
     };
     
     const success = await updateListing(updatedListing);
@@ -622,7 +734,8 @@ document.addEventListener('DOMContentLoaded', () => {
       description: elements.descriptionInput.value.trim(),
       itemPhoto: image,
       sellerPhoto: avatar,
-      sellerUniversity: elements.sellerUniversityInput.value
+      sellerUniversity: elements.sellerUniversityInput.value,
+      postPassword: elements.postPasswordInput.value.trim()
     };
     
     const success = await createListing(newListing);

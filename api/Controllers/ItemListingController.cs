@@ -47,16 +47,73 @@ namespace api.Controllers
 
             Database database = new Database();
             database.InitializeDatabase();
+            
+            // Get the existing listing to verify password
+            var existingListings = database.GetListings();
+            var existingListing = existingListings.FirstOrDefault(l => l.Id == id);
+            
+            if (existingListing == null)
+            {
+                return NotFound();
+            }
+            
+            // Check if password matches (if provided)
+            if (!string.IsNullOrEmpty(listing.PostPassword) && existingListing.PostPassword != listing.PostPassword)
+            {
+                return Unauthorized(new { message = "Invalid password" });
+            }
+            
             database.UpdateListing(listing);
             return NoContent();
         }
 
         // DELETE api/<ItemListingController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id, [FromBody] PasswordRequest passwordRequest)
         {
             Database database = new Database();
+            database.InitializeDatabase();
+            
+            // Get the existing listing to verify password
+            var existingListings = database.GetListings();
+            var existingListing = existingListings.FirstOrDefault(l => l.Id == id);
+            
+            if (existingListing == null)
+            {
+                return NotFound();
+            }
+            
+            // Check if password matches
+            if (existingListing.PostPassword != passwordRequest.Password)
+            {
+                return Unauthorized(new { message = "Invalid password" });
+            }
+            
             database.DeleteListing(id);
+            return NoContent();
+        }
+        
+        // POST api/<ItemListingController>/verify-password
+        [HttpPost("verify-password")]
+        public IActionResult VerifyPassword([FromBody] PasswordVerificationRequest request)
+        {
+            Database database = new Database();
+            database.InitializeDatabase();
+            
+            var existingListings = database.GetListings();
+            var existingListing = existingListings.FirstOrDefault(l => l.Id == request.Id);
+            
+            if (existingListing == null)
+            {
+                return NotFound();
+            }
+            
+            if (existingListing.PostPassword != request.Password)
+            {
+                return Unauthorized(new { message = "Invalid password" });
+            }
+            
+            return Ok(new { message = "Password verified" });
         }
 
         // POST api/<ItemListingController>/reseed
@@ -68,5 +125,16 @@ namespace api.Controllers
             database.ClearAndReseed();
             return Ok(new { message = "Database reseeded successfully" });
         }
+    }
+    
+    public class PasswordRequest
+    {
+        public string Password { get; set; } = "";
+    }
+    
+    public class PasswordVerificationRequest
+    {
+        public int Id { get; set; }
+        public string Password { get; set; } = "";
     }
 }
