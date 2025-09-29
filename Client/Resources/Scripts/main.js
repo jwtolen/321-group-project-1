@@ -247,7 +247,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Basic openDetail function
   async function openDetail(id) {
     console.log('openDetail called with ID:', id);
-    window.currentDetailId = id;
+    currentDetailId = id;
+    window.currentDetailId = id; // Keep this for backward compatibility
     
     const listings = await readListings();
     const listing = listings.find(l => l.id === id);
@@ -432,6 +433,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('editListingBtn').addEventListener('click', async () => {
     const password = document.getElementById('detailPasswordInput').value.trim();
     
+    console.log('Edit button clicked, currentDetailId:', currentDetailId, 'password:', password);
+    
     if (!password) {
       showToast('Please enter your listing password', 'warning');
       return;
@@ -439,12 +442,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     try {
       // Verify password first
-      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listingById(currentDetailId)}`, {
+      console.log('Verifying password for ID:', currentDetailId);
+      const response = await fetch(`${API_CONFIG.baseUrl}/api/ItemListing/verify-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ Password: password, Action: 'verify' })
+        body: JSON.stringify({ Id: currentDetailId, Password: password })
       });
       
       if (response.ok) {
@@ -458,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('editPrice').value = listing.price;
           document.getElementById('editCategory').value = listing.category;
           document.getElementById('editCondition').value = listing.condition;
-          document.getElementById('editSellerName').value = listing.sellerName;
+          document.getElementById('editSellerName').value = listing.sellerName || '';
           document.getElementById('editContact').value = listing.sellerContact;
           document.getElementById('editDescription').value = listing.description;
           
@@ -484,6 +488,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('removeMyListingBtn').addEventListener('click', async () => {
     const password = document.getElementById('detailPasswordInput').value.trim();
     
+    console.log('Delete button clicked, currentDetailId:', currentDetailId, 'password:', password);
+    
     if (!password) {
       showToast('Please enter your listing password', 'warning');
       return;
@@ -491,6 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
       try {
+        console.log('Deleting listing with ID:', currentDetailId);
         const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listingById(currentDetailId)}`, {
           method: 'DELETE',
           headers: {
@@ -521,14 +528,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     const editData = {
+      id: currentEditId,
       title: document.getElementById('editTitle').value.trim(),
       price: document.getElementById('editPrice').value,
       category: document.getElementById('editCategory').value,
       condition: document.getElementById('editCondition').value,
-      sellerName: document.getElementById('editSellerName').value.trim(),
       sellerContact: document.getElementById('editContact').value.trim(),
       description: document.getElementById('editDescription').value.trim(),
-      password: window.currentEditPassword
+      postPassword: window.currentEditPassword
     };
     
     try {
