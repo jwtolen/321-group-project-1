@@ -108,7 +108,12 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.listings}`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const listings = await response.json();
+      // Debug: log first listing to check isVerified field
+      if (listings.length > 0) {
+        console.log('Sample listing data:', listings[0]);
+      }
+      return listings;
     } catch (err) {
       console.error('Failed to fetch listings', err);
       return [];
@@ -176,7 +181,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const carryAwayBadge = (listing.isCarryAway && showCarryAway) 
       ? '<span class="badge text-bg-warning ms-2"><i class="bi bi-truck me-1"></i>Carry Away</span>' 
       : '';
-    const verifiedBadge = listing.isVerified 
+    // Check for isVerified (case-insensitive check for both camelCase and lowercase)
+    const isVerified = listing.isVerified === true || listing.isVerified === 1 || listing.isverified === true || listing.isverified === 1;
+    const verifiedBadge = isVerified 
       ? '<span class="badge text-bg-success ms-2"><i class="bi bi-shield-check me-1"></i>Verified</span>' 
       : '';
     
@@ -302,7 +309,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (existingVerifiedBadge) existingVerifiedBadge.remove();
       
       // Add verified badge if listing is verified
-      if (listing.isVerified) {
+      const isVerified = listing.isVerified === true || listing.isVerified === 1 || listing.isverified === true || listing.isverified === 1;
+      if (isVerified) {
         const verifiedBadge = document.createElement('span');
         verifiedBadge.className = 'badge text-bg-success ms-2 verified-badge';
         verifiedBadge.innerHTML = '<i class="bi bi-shield-check me-1"></i>Verified';
@@ -767,6 +775,34 @@ document.addEventListener('DOMContentLoaded', function() {
   elements.postBtn.addEventListener('click', () => {
     const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('postOffcanvas'));
     modal.show();
+    
+    // Set up verified listing checkbox listener when modal opens
+    setTimeout(() => {
+      const verifiedCheckbox = document.getElementById('verifiedListingInput');
+      const verifiedPasswordContainer = document.getElementById('verifiedPasswordContainer');
+      const verifiedPasswordInput = document.getElementById('verifiedPasswordInput');
+      
+      if (verifiedCheckbox && verifiedPasswordContainer) {
+        // Remove any existing listeners by cloning
+        const newCheckbox = verifiedCheckbox.cloneNode(true);
+        verifiedCheckbox.parentNode.replaceChild(newCheckbox, verifiedCheckbox);
+        
+        newCheckbox.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            verifiedPasswordContainer.classList.remove('d-none');
+            if (verifiedPasswordInput) {
+              verifiedPasswordInput.required = true;
+            }
+          } else {
+            verifiedPasswordContainer.classList.add('d-none');
+            if (verifiedPasswordInput) {
+              verifiedPasswordInput.required = false;
+              verifiedPasswordInput.value = '';
+            }
+          }
+        });
+      }
+    }, 100);
   });
 
   // Mobile post button
@@ -775,6 +811,34 @@ document.addEventListener('DOMContentLoaded', function() {
     postBtnMobile.addEventListener('click', () => {
       const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('postOffcanvas'));
       modal.show();
+      
+      // Set up verified listing checkbox listener when modal opens
+      setTimeout(() => {
+        const verifiedCheckbox = document.getElementById('verifiedListingInput');
+        const verifiedPasswordContainer = document.getElementById('verifiedPasswordContainer');
+        const verifiedPasswordInput = document.getElementById('verifiedPasswordInput');
+        
+        if (verifiedCheckbox && verifiedPasswordContainer) {
+          // Remove any existing listeners by cloning
+          const newCheckbox = verifiedCheckbox.cloneNode(true);
+          verifiedCheckbox.parentNode.replaceChild(newCheckbox, verifiedCheckbox);
+          
+          newCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+              verifiedPasswordContainer.classList.remove('d-none');
+              if (verifiedPasswordInput) {
+                verifiedPasswordInput.required = true;
+              }
+            } else {
+              verifiedPasswordContainer.classList.add('d-none');
+              if (verifiedPasswordInput) {
+                verifiedPasswordInput.required = false;
+                verifiedPasswordInput.value = '';
+              }
+            }
+          });
+        }
+      }, 100);
     });
   }
 
@@ -858,11 +922,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const avatar = rawAvatar && rawAvatar.startsWith('data:') ? await resizeDataUrl(rawAvatar, 256, 256, 0.85) : rawAvatar;
 
     // Check if verified listing is requested
-    const wantsVerified = elements.verifiedListingInput ? elements.verifiedListingInput.checked : false;
+    const verifiedCheckbox = document.getElementById('verifiedListingInput');
+    const wantsVerified = verifiedCheckbox ? verifiedCheckbox.checked : false;
     let isVerified = false;
     
     if (wantsVerified) {
-      const adminPassword = elements.verifiedPasswordInput ? elements.verifiedPasswordInput.value.trim() : '';
+      const verifiedPasswordInput = document.getElementById('verifiedPasswordInput');
+      const adminPassword = verifiedPasswordInput ? verifiedPasswordInput.value.trim() : '';
       if (adminPassword !== '123') {
         showToast('Invalid admin password for verified listing', 'danger');
         return;
@@ -887,6 +953,8 @@ document.addEventListener('DOMContentLoaded', function() {
       isCarryAway: elements.carryAwayInput ? elements.carryAwayInput.checked : false
     };
     
+    console.log('Creating listing with isVerified:', isVerified, newListing);
+    
     const success = await createListing(newListing);
     if (!success) {
       showToast('Could not save listing. Please try again.', 'danger');
@@ -901,9 +969,12 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.sellerAvatarPreview.src = '';
     elements.sellerAvatarPreview.classList.add('d-none');
     if (elements.carryAwayInput) elements.carryAwayInput.checked = false;
-    if (elements.verifiedListingInput) elements.verifiedListingInput.checked = false;
-    if (elements.verifiedPasswordInput) elements.verifiedPasswordInput.value = '';
-    if (elements.verifiedPasswordContainer) elements.verifiedPasswordContainer.classList.add('d-none');
+    const verifiedCheckbox = document.getElementById('verifiedListingInput');
+    const verifiedPasswordInput = document.getElementById('verifiedPasswordInput');
+    const verifiedPasswordContainer = document.getElementById('verifiedPasswordContainer');
+    if (verifiedCheckbox) verifiedCheckbox.checked = false;
+    if (verifiedPasswordInput) verifiedPasswordInput.value = '';
+    if (verifiedPasswordContainer) verifiedPasswordContainer.classList.add('d-none');
     bootstrap.Modal.getInstance(document.getElementById('postOffcanvas'))?.hide();
     showToast(isVerified ? 'Verified listing published' : 'Listing published', 'success');
     
@@ -913,18 +984,22 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Show/hide verified password field when checkbox is toggled
-  if (elements.verifiedListingInput && elements.verifiedPasswordContainer) {
-    elements.verifiedListingInput.addEventListener('change', (e) => {
+  const verifiedListingCheckbox = document.getElementById('verifiedListingInput');
+  const verifiedPasswordContainer = document.getElementById('verifiedPasswordContainer');
+  const verifiedPasswordInput = document.getElementById('verifiedPasswordInput');
+  
+  if (verifiedListingCheckbox && verifiedPasswordContainer) {
+    verifiedListingCheckbox.addEventListener('change', (e) => {
       if (e.target.checked) {
-        elements.verifiedPasswordContainer.classList.remove('d-none');
-        if (elements.verifiedPasswordInput) {
-          elements.verifiedPasswordInput.required = true;
+        verifiedPasswordContainer.classList.remove('d-none');
+        if (verifiedPasswordInput) {
+          verifiedPasswordInput.required = true;
         }
       } else {
-        elements.verifiedPasswordContainer.classList.add('d-none');
-        if (elements.verifiedPasswordInput) {
-          elements.verifiedPasswordInput.required = false;
-          elements.verifiedPasswordInput.value = '';
+        verifiedPasswordContainer.classList.add('d-none');
+        if (verifiedPasswordInput) {
+          verifiedPasswordInput.required = false;
+          verifiedPasswordInput.value = '';
         }
       }
     });
