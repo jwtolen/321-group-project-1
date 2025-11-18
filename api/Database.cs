@@ -48,6 +48,30 @@ namespace api.Models
             {
                 // Column already exists, ignore the error
             }
+            
+            // Add IsVerified column if it doesn't exist
+            try
+            {
+                string addIsVerifiedColumn = "ALTER TABLE ItemListings ADD COLUMN IsVerified INTEGER DEFAULT 0";
+                using var migrationCmd = new SqliteCommand(addIsVerifiedColumn, con);
+                migrationCmd.ExecuteNonQuery();
+            }
+            catch (SqliteException)
+            {
+                // Column already exists, ignore the error
+            }
+            
+            // Add IsCarryAway column if it doesn't exist
+            try
+            {
+                string addIsCarryAwayColumn = "ALTER TABLE ItemListings ADD COLUMN IsCarryAway INTEGER DEFAULT 0";
+                using var migrationCmd = new SqliteCommand(addIsCarryAwayColumn, con);
+                migrationCmd.ExecuteNonQuery();
+            }
+            catch (SqliteException)
+            {
+                // Column already exists, ignore the error
+            }
         }
 
         public List<ItemListing> GetListings()
@@ -73,7 +97,9 @@ namespace api.Models
                     ItemPhoto = rdr.IsDBNull(8) ? "" : rdr.GetString(8),
                     SellerPhoto = rdr.IsDBNull(9) ? "" : rdr.GetString(9),
                     SellerUniversity = rdr.IsDBNull(10) ? "" : rdr.GetString(10),
-                    PostPassword = rdr.IsDBNull(11) ? "" : rdr.GetString(11)
+                    PostPassword = rdr.IsDBNull(11) ? "" : rdr.GetString(11),
+                    IsVerified = rdr.FieldCount > 12 && !rdr.IsDBNull(12) && rdr.GetInt32(12) == 1,
+                    IsCarryAway = rdr.FieldCount > 13 && !rdr.IsDBNull(13) && rdr.GetInt32(13) == 1
                 });
             }
             return listings;
@@ -96,7 +122,8 @@ namespace api.Models
                               Condition = @Condition, SellerContact = @SellerContact, 
                               SellerName = @SellerName, Description = @Description, 
                               ItemPhoto = @ItemPhoto, SellerPhoto = @SellerPhoto, 
-                              SellerUniversity = @SellerUniversity, PostPassword = @PostPassword 
+                              SellerUniversity = @SellerUniversity, PostPassword = @PostPassword,
+                              IsVerified = @IsVerified, IsCarryAway = @IsCarryAway
                           WHERE Id = @Id";
             
             using var con = new SqliteConnection(cs);
@@ -114,14 +141,16 @@ namespace api.Models
             cmd.Parameters.AddWithValue("@SellerPhoto", listing.SellerPhoto ?? "");
             cmd.Parameters.AddWithValue("@SellerUniversity", listing.SellerUniversity ?? "");
             cmd.Parameters.AddWithValue("@PostPassword", listing.PostPassword ?? "");
+            cmd.Parameters.AddWithValue("@IsVerified", listing.IsVerified ? 1 : 0);
+            cmd.Parameters.AddWithValue("@IsCarryAway", listing.IsCarryAway ? 1 : 0);
             
             cmd.ExecuteNonQuery();
         }
 
         public void AddListing(ItemListing listing)
         {
-            string stm = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, SellerName, Description, ItemPhoto, SellerPhoto, SellerUniversity, PostPassword) 
-                          VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @SellerName, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity, @PostPassword)";
+            string stm = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, SellerName, Description, ItemPhoto, SellerPhoto, SellerUniversity, PostPassword, IsVerified, IsCarryAway) 
+                          VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @SellerName, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity, @PostPassword, @IsVerified, @IsCarryAway)";
             
             using var con = new SqliteConnection(cs);
             con.Open();
@@ -138,6 +167,8 @@ namespace api.Models
             cmd.Parameters.AddWithValue("@SellerPhoto", listing.SellerPhoto ?? "");
             cmd.Parameters.AddWithValue("@SellerUniversity", listing.SellerUniversity ?? "");
             cmd.Parameters.AddWithValue("@PostPassword", listing.PostPassword ?? "");
+            cmd.Parameters.AddWithValue("@IsVerified", listing.IsVerified ? 1 : 0);
+            cmd.Parameters.AddWithValue("@IsCarryAway", listing.IsCarryAway ? 1 : 0);
             
             cmd.ExecuteNonQuery();
         }
@@ -187,8 +218,8 @@ namespace api.Models
                 {
                     try
                     {
-                        string insertSql = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, Description, ItemPhoto, SellerPhoto, SellerUniversity, PostPassword) 
-                                           VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity, @PostPassword)";
+                        string insertSql = @"INSERT INTO ItemListings (Id, Title, Price, Category, Condition, SellerContact, Description, ItemPhoto, SellerPhoto, SellerUniversity, PostPassword, IsVerified, IsCarryAway) 
+                                           VALUES (@Id, @Title, @Price, @Category, @Condition, @SellerContact, @Description, @ItemPhoto, @SellerPhoto, @SellerUniversity, @PostPassword, @IsVerified, @IsCarryAway)";
                         
                         using var cmd = new SqliteCommand(insertSql, con);
                         cmd.Parameters.AddWithValue("@Id", listing.Id);
@@ -202,6 +233,8 @@ namespace api.Models
                         cmd.Parameters.AddWithValue("@SellerPhoto", listing.SellerPhoto ?? "");
                         cmd.Parameters.AddWithValue("@SellerUniversity", listing.SellerUniversity ?? "");
                         cmd.Parameters.AddWithValue("@PostPassword", listing.PostPassword ?? "");
+                        cmd.Parameters.AddWithValue("@IsVerified", listing.IsVerified ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@IsCarryAway", listing.IsCarryAway ? 1 : 0);
                         
                         cmd.ExecuteNonQuery();
                         insertedCount++;

@@ -43,6 +43,12 @@ namespace api.Models
         
         [JsonProperty("postPassword")]
         public string? PostPassword { get; set; }
+        
+        [JsonProperty("isVerified")]
+        public bool IsVerified { get; set; }
+        
+        [JsonProperty("isCarryAway")]
+        public bool IsCarryAway { get; set; }
     }
 
 }

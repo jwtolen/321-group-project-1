@@ -150,6 +150,28 @@ namespace api.Controllers
             database.ClearAndReseed();
             return Ok(new { message = "Database reseeded successfully" });
         }
+        
+        // GET: api/<ItemListingController>/verified
+        [HttpGet("verified")]
+        public List<ItemListing> GetVerified()
+        {
+            Database database = new Database();
+            database.InitializeDatabase();
+            var allListings = database.GetListings();
+            return allListings.Where(l => l.IsVerified).ToList();
+        }
+        
+        // POST: api/<ItemListingController>/verified
+        [HttpPost("verified")]
+        public IActionResult PostVerified([FromBody] ItemListing listing)
+        {
+            // Set IsVerified to true for verified listings
+            listing.IsVerified = true;
+            Database database = new Database();
+            database.InitializeDatabase();
+            database.AddListing(listing);
+            return CreatedAtAction(nameof(GetVerified), new { id = listing.Id }, listing);
+        }
     }
     
     public class PasswordRequest
