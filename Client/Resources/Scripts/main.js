@@ -20,8 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
       : window.location.origin,
     endpoints: {
       listings: '/api/ItemListing',
-      listingById: (id) => `/api/ItemListing/${id}`,
-      verifiedListings: '/api/ItemListing/verified'
+      listingById: (id) => `/api/ItemListing/${id}`
     }
   };
 
@@ -31,15 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
     grid: document.getElementById('listingsGrid'),
     resultsCount: document.getElementById('resultsCount'),
     adminPage: document.getElementById('adminPage'),
-    mainListingsPage: document.getElementById('mainListingsPage'),
-    verifiedFurniturePage: document.getElementById('verifiedFurniturePage'),
-    verifiedListingsGrid: document.getElementById('verifiedListingsGrid'),
-    verifiedResultsCount: document.getElementById('verifiedResultsCount'),
-    mainPageLink: document.getElementById('mainPageLink'),
-    verifiedPageLink: document.getElementById('verifiedPageLink'),
-    mainPageLinkMobile: document.getElementById('mainPageLinkMobile'),
-    verifiedPageLinkMobile: document.getElementById('verifiedPageLinkMobile'),
-    postVerifiedBtn: document.getElementById('postVerifiedBtn'),
     
     // Filters
     searchInput: document.getElementById('searchInput'),
@@ -71,6 +61,9 @@ document.addEventListener('DOMContentLoaded', function() {
     sellerAvatarPreview: document.getElementById('sellerAvatarPreview'),
     postPasswordInput: document.getElementById('postPasswordInput'),
     carryAwayInput: document.getElementById('carryAwayInput'),
+    verifiedListingInput: document.getElementById('verifiedListingInput'),
+    verifiedPasswordInput: document.getElementById('verifiedPasswordInput'),
+    verifiedPasswordContainer: document.getElementById('verifiedPasswordContainer'),
     
     // Detail modal
     detailModal: document.getElementById('detailModal'),
@@ -183,6 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const carryAwayBadge = (listing.isCarryAway && showCarryAway) 
       ? '<span class="badge text-bg-warning ms-2"><i class="bi bi-truck me-1"></i>Carry Away</span>' 
       : '';
+    const verifiedBadge = listing.isVerified 
+      ? '<span class="badge text-bg-success ms-2"><i class="bi bi-shield-check me-1"></i>Verified</span>' 
+      : '';
     
     col.innerHTML = `
       <div class="card h-100 shadow-sm cursor-pointer" data-id="${listing.id}">
@@ -194,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <h3 class="h6 mb-1 clamp-2">${listing.title}</h3>
             <div>
               <span class="badge text-bg-primary ms-2">${listing.category}</span>
+              ${verifiedBadge}
               ${carryAwayBadge}
             </div>
           </div>
@@ -219,18 +216,10 @@ document.addEventListener('DOMContentLoaded', function() {
     list.forEach(l => elements.grid.appendChild(createCard(l, isAdminLoggedIn)));
     elements.resultsCount.textContent = `${list.length} result${list.length !== 1 ? 's' : ''}`;
   }
-  
-  function renderVerified(list) {
-    elements.verifiedListingsGrid.innerHTML = '';
-    list.forEach(l => elements.verifiedListingsGrid.appendChild(createCard(l, isAdminLoggedIn)));
-    elements.verifiedResultsCount.textContent = `${list.length} result${list.length !== 1 ? 's' : ''}`;
-  }
 
   // Filtering and Search
   async function applyFilters() {
     const raw = await readListings();
-    // Filter out verified listings from main page
-    const nonVerified = raw.filter(l => !l.isVerified);
     
     const q = (elements.searchInput.value || '').trim().toLowerCase();
     const cat = elements.categorySelect.value;
@@ -240,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const max = parseFloat(elements.priceMax.value);
     const sort = elements.sortSelect.value;
 
-    let res = nonVerified.filter(l => {
+    let res = raw.filter(l => {
       const matchesQ = !q || l.title.toLowerCase().includes(q) || l.description.toLowerCase().includes(q);
       const matchesCat = !cat || l.category === cat;
       const matchesUni = !uni || l.sellerUniversity === uni;
@@ -256,38 +245,6 @@ document.addEventListener('DOMContentLoaded', function() {
     else res.sort((a, b) => (a.id < b.id ? 1 : -1));
 
     render(res);
-  }
-  
-  // Load verified listings
-  async function loadVerifiedListings() {
-    try {
-      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.verifiedListings}`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const listings = await response.json();
-      renderVerified(listings);
-    } catch (err) {
-      console.error('Failed to fetch verified listings', err);
-      renderVerified([]);
-    }
-  }
-  
-  // Page navigation
-  function showMainPage() {
-    elements.mainListingsPage.classList.remove('d-none');
-    elements.verifiedFurniturePage.classList.add('d-none');
-    applyFilters();
-  }
-  
-  function showVerifiedPage() {
-    elements.mainListingsPage.classList.add('d-none');
-    elements.verifiedFurniturePage.classList.remove('d-none');
-    loadVerifiedListings();
-    // Show post button only if admin is logged in
-    if (isAdminLoggedIn) {
-      elements.postVerifiedBtn.classList.remove('d-none');
-    } else {
-      elements.postVerifiedBtn.classList.add('d-none');
-    }
   }
 
   async function resetFilters() {
@@ -335,22 +292,30 @@ document.addEventListener('DOMContentLoaded', function() {
     if (detailDescription) detailDescription.textContent = listing.description;
     if (detailContact) detailContact.textContent = listing.sellerContact;
     
-    // Show Carry Away badge in detail modal if admin and listing is marked
+    // Show badges in detail modal
     const detailCategoryContainer = detailCategory?.parentElement;
-    if (detailCategoryContainer && listing.isCarryAway && isAdminLoggedIn) {
-      // Remove existing carry away badge if any
-      const existingBadge = detailCategoryContainer.querySelector('.carry-away-badge');
-      if (existingBadge) existingBadge.remove();
+    if (detailCategoryContainer) {
+      // Remove existing badges
+      const existingCarryAwayBadge = detailCategoryContainer.querySelector('.carry-away-badge');
+      const existingVerifiedBadge = detailCategoryContainer.querySelector('.verified-badge');
+      if (existingCarryAwayBadge) existingCarryAwayBadge.remove();
+      if (existingVerifiedBadge) existingVerifiedBadge.remove();
       
-      // Add carry away badge
-      const carryAwayBadge = document.createElement('span');
-      carryAwayBadge.className = 'badge text-bg-warning ms-2 carry-away-badge';
-      carryAwayBadge.innerHTML = '<i class="bi bi-truck me-1"></i>Carry Away';
-      detailCategoryContainer.appendChild(carryAwayBadge);
-    } else if (detailCategoryContainer) {
-      // Remove badge if not admin or not carry away
-      const existingBadge = detailCategoryContainer.querySelector('.carry-away-badge');
-      if (existingBadge) existingBadge.remove();
+      // Add verified badge if listing is verified
+      if (listing.isVerified) {
+        const verifiedBadge = document.createElement('span');
+        verifiedBadge.className = 'badge text-bg-success ms-2 verified-badge';
+        verifiedBadge.innerHTML = '<i class="bi bi-shield-check me-1"></i>Verified';
+        detailCategoryContainer.appendChild(verifiedBadge);
+      }
+      
+      // Add carry away badge if admin and listing is marked
+      if (listing.isCarryAway && isAdminLoggedIn) {
+        const carryAwayBadge = document.createElement('span');
+        carryAwayBadge.className = 'badge text-bg-warning ms-2 carry-away-badge';
+        carryAwayBadge.innerHTML = '<i class="bi bi-truck me-1"></i>Carry Away';
+        detailCategoryContainer.appendChild(carryAwayBadge);
+      }
     }
     
     // Handle seller information
@@ -892,6 +857,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const image = rawItemImg && rawItemImg.startsWith('data:') ? await resizeDataUrl(rawItemImg, 1200, 1200, 0.8) : rawItemImg;
     const avatar = rawAvatar && rawAvatar.startsWith('data:') ? await resizeDataUrl(rawAvatar, 256, 256, 0.85) : rawAvatar;
 
+    // Check if verified listing is requested
+    const wantsVerified = elements.verifiedListingInput ? elements.verifiedListingInput.checked : false;
+    let isVerified = false;
+    
+    if (wantsVerified) {
+      const adminPassword = elements.verifiedPasswordInput ? elements.verifiedPasswordInput.value.trim() : '';
+      if (adminPassword !== '123') {
+        showToast('Invalid admin password for verified listing', 'danger');
+        return;
+      }
+      isVerified = true;
+    }
+    
     const newListing = {
       id: generateId(),
       title: elements.titleInput.value.trim(),
@@ -905,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function() {
       sellerPhoto: avatar,
       sellerUniversity: elements.sellerUniversityInput.value,
       postPassword: elements.postPasswordInput.value.trim(),
-      isVerified: false,
+      isVerified: isVerified,
       isCarryAway: elements.carryAwayInput ? elements.carryAwayInput.checked : false
     };
     
@@ -923,147 +901,32 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.sellerAvatarPreview.src = '';
     elements.sellerAvatarPreview.classList.add('d-none');
     if (elements.carryAwayInput) elements.carryAwayInput.checked = false;
+    if (elements.verifiedListingInput) elements.verifiedListingInput.checked = false;
+    if (elements.verifiedPasswordInput) elements.verifiedPasswordInput.value = '';
+    if (elements.verifiedPasswordContainer) elements.verifiedPasswordContainer.classList.add('d-none');
     bootstrap.Modal.getInstance(document.getElementById('postOffcanvas'))?.hide();
-    showToast('Listing published', 'success');
+    showToast(isVerified ? 'Verified listing published' : 'Listing published', 'success');
     
     // Refresh the listings
     await applyFilters();
     populateUniversityOptions();
   });
   
-  // Post verified listing form submission
-  const postVerifiedForm = document.getElementById('postVerifiedForm');
-  if (postVerifiedForm) {
-    postVerifiedForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = postVerifiedForm;
-      form.classList.add('was-validated');
-      if (!form.checkValidity()) return;
-
-      // Compress images
-      const verifiedImagePreview = document.getElementById('verifiedImagePreview');
-      const verifiedSellerAvatarPreview = document.getElementById('verifiedSellerAvatarPreview');
-      const verifiedImageInput = document.getElementById('verifiedImageInput');
-      const verifiedSellerAvatarInput = document.getElementById('verifiedSellerAvatarInput');
-      
-      const rawItemImg = verifiedImagePreview.src || '';
-      const rawAvatar = verifiedSellerAvatarPreview.src || '';
-      const image = rawItemImg && rawItemImg.startsWith('data:') ? await resizeDataUrl(rawItemImg, 1200, 1200, 0.8) : rawItemImg;
-      const avatar = rawAvatar && rawAvatar.startsWith('data:') ? await resizeDataUrl(rawAvatar, 256, 256, 0.85) : rawAvatar;
-
-      const newListing = {
-        id: generateId(),
-        title: document.getElementById('verifiedTitleInput').value.trim(),
-        price: document.getElementById('verifiedPriceInput').value,
-        category: document.getElementById('verifiedCategoryInput').value,
-        condition: document.getElementById('verifiedConditionInput').value,
-        sellerContact: document.getElementById('verifiedContactInput').value.trim(),
-        sellerName: document.getElementById('verifiedSellerNameInput').value.trim(),
-        description: document.getElementById('verifiedDescriptionInput').value.trim(),
-        itemPhoto: image,
-        sellerPhoto: avatar,
-        sellerUniversity: document.getElementById('verifiedSellerUniversityInput').value,
-        postPassword: '', // Verified listings don't need passwords
-        isVerified: true,
-        isCarryAway: false
-      };
-      
-      try {
-        const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.verifiedListings}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(newListing)
-        });
-        
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
-        // Reset form and close
-        form.reset();
-        form.classList.remove('was-validated');
-        verifiedImagePreview.src = '';
-        verifiedImagePreview.classList.add('d-none');
-        verifiedSellerAvatarPreview.src = '';
-        verifiedSellerAvatarPreview.classList.add('d-none');
-        bootstrap.Modal.getInstance(document.getElementById('postVerifiedModal'))?.hide();
-        showToast('Verified listing published', 'success');
-        
-        // Refresh the verified listings
-        await loadVerifiedListings();
-        populateUniversityOptions();
-      } catch (err) {
-        console.error('Failed to create verified listing', err);
-        showToast('Could not save verified listing. Please try again.', 'danger');
+  // Show/hide verified password field when checkbox is toggled
+  if (elements.verifiedListingInput && elements.verifiedPasswordContainer) {
+    elements.verifiedListingInput.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        elements.verifiedPasswordContainer.classList.remove('d-none');
+        if (elements.verifiedPasswordInput) {
+          elements.verifiedPasswordInput.required = true;
+        }
+      } else {
+        elements.verifiedPasswordContainer.classList.add('d-none');
+        if (elements.verifiedPasswordInput) {
+          elements.verifiedPasswordInput.required = false;
+          elements.verifiedPasswordInput.value = '';
+        }
       }
-    });
-  }
-  
-  // Verified form image previews
-  const verifiedImageInput = document.getElementById('verifiedImageInput');
-  if (verifiedImageInput) {
-    verifiedImageInput.addEventListener('change', (e) => {
-      const file = e.target.files?.[0];
-      const preview = document.getElementById('verifiedImagePreview');
-      if (!file) {
-        preview.classList.add('d-none');
-        preview.src = '';
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        preview.src = reader.result;
-        preview.classList.remove('d-none');
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-  
-  const verifiedSellerAvatarInput = document.getElementById('verifiedSellerAvatarInput');
-  if (verifiedSellerAvatarInput) {
-    verifiedSellerAvatarInput.addEventListener('change', (e) => {
-      const file = e.target.files?.[0];
-      const preview = document.getElementById('verifiedSellerAvatarPreview');
-      if (!file) {
-        preview.classList.add('d-none');
-        preview.src = '';
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        preview.src = reader.result;
-        preview.classList.remove('d-none');
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-  
-  // Page navigation event listeners
-  if (elements.mainPageLink) {
-    elements.mainPageLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      showMainPage();
-    });
-  }
-  
-  if (elements.verifiedPageLink) {
-    elements.verifiedPageLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      showVerifiedPage();
-    });
-  }
-  
-  if (elements.mainPageLinkMobile) {
-    elements.mainPageLinkMobile.addEventListener('click', (e) => {
-      e.preventDefault();
-      showMainPage();
-    });
-  }
-  
-  if (elements.verifiedPageLinkMobile) {
-    elements.verifiedPageLinkMobile.addEventListener('click', (e) => {
-      e.preventDefault();
-      showVerifiedPage();
     });
   }
 
@@ -1093,8 +956,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Show admin page and hide main content
       elements.adminPage.classList.remove('d-none');
-      elements.mainListingsPage.classList.add('d-none');
-      elements.verifiedFurniturePage.classList.add('d-none');
+      document.querySelector('.container').classList.add('d-none');
       
       // Update admin dashboard
       updateAdminDashboard();
@@ -1130,24 +992,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Hide admin page and show main content
     elements.adminPage.classList.add('d-none');
-    showMainPage();
+    document.querySelector('.container').classList.remove('d-none');
   });
 
   // Initialize
   populateUniversityOptions();
   setupUniversityDropdown();
-  
-  // Populate verified form university options
-  const verifiedSellerUniversityInput = document.getElementById('verifiedSellerUniversityInput');
-  if (verifiedSellerUniversityInput) {
-    const sel = verifiedSellerUniversityInput;
-    sel.innerHTML = '<option value="" disabled selected>Choose...</option>';
-    UNIVERSITIES.forEach(u => {
-      const opt = document.createElement('option');
-      opt.textContent = u;
-      sel.appendChild(opt);
-    });
-  }
   
   // Load listings on page load
   applyFilters();

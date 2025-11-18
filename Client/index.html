@@ -33,14 +33,9 @@
           
           <!-- Centered Title -->
           <div class="flex-grow-1 text-center" style="margin-left: 80px;">
-            <a class="navbar-brand fw-bold" href="#" id="mainPageLink" style="font-family: 'Georgia', serif; font-size: 1.8rem; color: #9B1C31 !important;">
+            <a class="navbar-brand fw-bold" href="#" style="font-family: 'Georgia', serif; font-size: 1.8rem; color: #9B1C31 !important;">
               <i class="bi bi-house-door me-2"></i>T-Town Trading Post
             </a>
-            <div class="mt-2">
-              <a href="#" id="verifiedPageLink" class="text-decoration-none small" style="color: #9B1C31;">
-                <i class="bi bi-shield-check me-1"></i>Verified Furniture
-              </a>
-            </div>
           </div>
           
           <!-- Post Button -->
@@ -70,14 +65,9 @@
         <!-- Mobile Layout -->
         <div class="d-flex d-lg-none flex-column align-items-center w-100">
           <!-- Title -->
-          <a class="navbar-brand fw-bold mb-2" href="#" id="mainPageLinkMobile" style="font-family: 'Georgia', serif; font-size: 1.4rem; color: #9B1C31 !important;">
+          <a class="navbar-brand fw-bold mb-3" href="#" style="font-family: 'Georgia', serif; font-size: 1.4rem; color: #9B1C31 !important;">
             <i class="bi bi-house-door me-2"></i>T-Town Trading Post
           </a>
-          <div class="mb-2">
-            <a href="#" id="verifiedPageLinkMobile" class="text-decoration-none small" style="color: #9B1C31;">
-              <i class="bi bi-shield-check me-1"></i>Verified Furniture
-            </a>
-          </div>
           
           <!-- Button Row -->
           <div class="d-flex gap-3 justify-content-center">
@@ -120,8 +110,7 @@
     </div>
   </nav>
 
-  <!-- Main Listings Page -->
-  <div id="mainListingsPage" class="container py-4">
+  <div class="container py-4">
     <!-- Filters -->
     <div class="collapse" id="filtersCollapse">
       <form id="filtersForm" class="row gy-3 gx-3 align-items-end">
@@ -187,22 +176,6 @@
       <!-- Listings grid -->
       <div id="listingsGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3"></div>
     </div>
-
-  <!-- Verified Furniture Page -->
-  <div id="verifiedFurniturePage" class="container py-4 d-none">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>
-        <i class="bi bi-shield-check me-2"></i>Verified Furniture
-      </h2>
-      <button id="postVerifiedBtn" class="btn btn-primary d-none" type="button" data-bs-toggle="modal" data-bs-target="#postVerifiedModal">
-        <i class="bi bi-plus-lg me-1"></i>Post Verified Listing
-      </button>
-    </div>
-    
-    <!-- Verified Listings grid -->
-    <div id="verifiedListingsGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3"></div>
-    <div id="verifiedResultsCount" class="text-secondary small mt-3">0 results</div>
-  </div>
 
     <!-- Post listing modal -->
     <div class="modal fade" id="postOffcanvas" tabindex="-1" aria-hidden="true">
@@ -296,6 +269,20 @@
                         <strong>Carry Away</strong> - Mark this if you're willing to give this item away for FREE if we pick it up
                       </label>
                       <div class="form-text">This marking will only be visible to admins.</div>
+                    </div>
+                  </div>
+                  
+                  <div class="mb-4">
+                    <div class="form-check mb-2">
+                      <input class="form-check-input" type="checkbox" id="verifiedListingInput" />
+                      <label class="form-check-label" for="verifiedListingInput">
+                        <strong><i class="bi bi-shield-check me-1"></i>Verified Listing</strong> - Mark this to create a verified listing
+                      </label>
+                    </div>
+                    <div id="verifiedPasswordContainer" class="d-none">
+                      <label for="verifiedPasswordInput" class="form-label">Admin Password</label>
+                      <input type="password" id="verifiedPasswordInput" class="form-control" placeholder="Enter admin password" maxlength="50" />
+                      <div class="form-text">Enter the admin password to create a verified listing.</div>
                     </div>
                   </div>
                 </div>
@@ -421,121 +408,6 @@
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             <button type="button" class="btn btn-primary" id="adminLoginSubmit">
               <i class="bi bi-box-arrow-in-right me-1"></i>Login
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Post Verified Listing Modal (Admin Only) -->
-    <div class="modal fade" id="postVerifiedModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="postVerifiedModalLabel">
-              <i class="bi bi-shield-check me-2"></i>Post Verified Furniture Listing
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="postVerifiedForm" novalidate class="needs-validation">
-              <div class="row">
-                <div class="col-lg-8">
-                  <div class="mb-4">
-                    <label for="verifiedTitleInput" class="form-label">Listing Title</label>
-                    <input type="text" id="verifiedTitleInput" class="form-control form-control-lg" required maxlength="80" placeholder="e.g., IKEA desk in great condition" />
-                    <div class="invalid-feedback">Title is required.</div>
-                  </div>
-                  
-                  <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                      <label for="verifiedPriceInput" class="form-label">Price ($)</label>
-                      <input type="number" id="verifiedPriceInput" class="form-control" min="0" step="0.01" required placeholder="0.00" />
-                      <div class="invalid-feedback">Enter a valid price.</div>
-                    </div>
-                    <div class="col-md-4">
-                      <label for="verifiedCategoryInput" class="form-label">Category</label>
-                      <select id="verifiedCategoryInput" class="form-select" required>
-                        <option value="" disabled selected>Choose...</option>
-                        <option>Couch</option>
-                        <option>Desk</option>
-                        <option>Chair</option>
-                        <option>Bed</option>
-                        <option>Storage</option>
-                        <option>Other</option>
-                      </select>
-                      <div class="invalid-feedback">Select a category.</div>
-                    </div>
-                    <div class="col-md-4">
-                      <label for="verifiedConditionInput" class="form-label">Condition</label>
-                      <select id="verifiedConditionInput" class="form-select" required>
-                        <option value="" disabled selected>Choose...</option>
-                        <option>Like New</option>
-                        <option>Good</option>
-                        <option>Fair</option>
-                      </select>
-                      <div class="invalid-feedback">Select condition.</div>
-                    </div>
-                  </div>
-
-                  <div class="mb-4">
-                    <label for="verifiedDescriptionInput" class="form-label">Description</label>
-                    <textarea id="verifiedDescriptionInput" class="form-control" rows="4" maxlength="400" placeholder="Describe the item..." required></textarea>
-                    <div class="invalid-feedback">Description is required.</div>
-                  </div>
-
-                  <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                      <label for="verifiedSellerNameInput" class="form-label">Seller Name</label>
-                      <input type="text" id="verifiedSellerNameInput" class="form-control" required maxlength="80" placeholder="John Smith" />
-                      <div class="invalid-feedback">Seller name is required.</div>
-                    </div>
-                    <div class="col-md-6">
-                      <label for="verifiedSellerUniversityInput" class="form-label">University</label>
-                      <select id="verifiedSellerUniversityInput" class="form-select" required></select>
-                      <div class="invalid-feedback">Select a university.</div>
-                    </div>
-                  </div>
-
-                  <div class="mb-4">
-                    <label for="verifiedContactInput" class="form-label">Contact Email</label>
-                    <input type="email" id="verifiedContactInput" class="form-control" placeholder="you@ua.edu" required maxlength="120" />
-                    <div class="invalid-feedback">Provide a valid email.</div>
-                  </div>
-                </div>
-
-                <div class="col-lg-4">
-                  <div class="card h-100">
-                    <div class="card-header">
-                      <h6 class="mb-0"><i class="bi bi-image me-2"></i>Photos</h6>
-                    </div>
-                    <div class="card-body">
-                      <div class="mb-3">
-                        <label for="verifiedImageInput" class="form-label">Item Photo</label>
-                        <input class="form-control" type="file" id="verifiedImageInput" accept="image/*" />
-                        <div class="mt-2">
-                          <img id="verifiedImagePreview" alt="Preview" class="img-fluid rounded d-none" style="max-height: 150px; width: 100%; object-fit: cover;" />
-                        </div>
-                      </div>
-                      
-                      <div class="mb-3">
-                        <label for="verifiedSellerAvatarInput" class="form-label">Seller Photo</label>
-                        <input class="form-control" type="file" id="verifiedSellerAvatarInput" accept="image/*" required />
-                        <div class="invalid-feedback">Upload a photo of the seller.</div>
-                        <div class="mt-2">
-                          <img id="verifiedSellerAvatarPreview" class="avatar avatar-md d-none" alt="Seller photo preview" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" form="postVerifiedForm" class="btn btn-primary">
-              <i class="bi bi-cloud-upload me-1"></i>Publish Verified Listing
             </button>
           </div>
         </div>
